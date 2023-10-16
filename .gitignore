@@ -4,4 +4,7 @@
 .cache/
 .profile
 .sudo_as_admin_successful
+.git-credentials
+.gitconfig
+.lesshst
 
