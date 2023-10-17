@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
     image: postgres:14
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     environment:
       PGUSER: 'test'
       PGPASSWORD: 'test'
@@ -55,7 +55,7 @@ services:
       context: ./flask
       dockerfile: Dockerfile
     ports:
-      - '56733:80'
+      - '127.0.0.1:56733:80'
     volumes:
       - './flask:/app'
     networks:
