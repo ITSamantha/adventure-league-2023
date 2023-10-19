@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -16,6 +17,9 @@ use Illuminate\Support\Carbon;
  * @property string $comment
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @property-read InsuranceRequestStatus $status
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequest newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequest newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequest query()
@@ -34,4 +38,8 @@ class InsuranceRequest extends Model
     protected $guarded = [];
     protected $table = 'insurance_requests';
 
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(InsuranceRequestStatus::class, 'insurance_request_status_id', 'id');
+    }
 }

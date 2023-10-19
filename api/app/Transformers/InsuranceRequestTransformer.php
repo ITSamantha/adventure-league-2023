@@ -11,7 +11,8 @@ class InsuranceRequestTransformer extends AbstractTransformer
         return [
             'id' => $iRequest->id,
             'user_id' => $iRequest->user_id,
-            'insurance_request_status_id' => $iRequest->insurance_request_status_id,
+            'status_id' => $iRequest->insurance_request_status_id,
+            'status' => $iRequest->status->name,
             'insurance_object_type_id' => $iRequest->insurance_object_type_id,
             'comment' => $iRequest->comment,
         ];

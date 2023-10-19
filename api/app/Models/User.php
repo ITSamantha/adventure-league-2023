@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -20,6 +21,7 @@ use Illuminate\Support\Collection;
  *
  * @property-read string $full_name
  * @property-read Collection<InsuranceRequest> $insuranceRequests
+ * @property-read Collection<Role> $roles
  *
  * @method static \Illuminate\Database\Eloquent\Builder|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|User newQuery()
@@ -44,6 +46,18 @@ class User extends Model
     public function insuranceRequests(): HasMany
     {
         return $this->hasMany(InsuranceRequest::class, 'user_id', 'id');
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_has_role', 'user_id', 'role_id');
+    }
+
+    public function addRole(int $roleId)
+    {
+        $this->roles()->create([
+            'role_id' => $roleId,
+        ]);
     }
 
     public function getFullNameAttribute(): string

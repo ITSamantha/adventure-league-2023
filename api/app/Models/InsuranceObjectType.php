@@ -19,7 +19,6 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectType whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectType whereUpdatedAt($value)
- * @mixin \Eloquent
  */
 class InsuranceObjectType extends Model
 {
