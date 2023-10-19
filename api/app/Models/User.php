@@ -18,6 +18,7 @@ use Illuminate\Support\Collection;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
+ * @property-read string $full_name
  * @property-read Collection<InsuranceRequest> $insuranceRequests
  *
  * @method static \Illuminate\Database\Eloquent\Builder|User newModelQuery()
@@ -43,5 +44,10 @@ class User extends Model
     public function insuranceRequests(): HasMany
     {
         return $this->hasMany(InsuranceRequest::class, 'user_id', 'id');
+    }
+
+    public function getFullNameAttribute(): string
+    {
+        return $this->name . ' ' . $this->surname . ($this->patronymic ? ' ' . $this->patronymic : '');
     }
 }
