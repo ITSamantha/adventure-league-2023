@@ -66,6 +66,18 @@ services:
     build:
       context: ./bot
       dockerfile: Dockerfile
+  neural_network:
+    container_name: neural_network
+    restart: unless-stopped
+    build:
+      context: ./neural_network
+      dockerfile: Dockerfile
+    ports:
+      - '127.0.0.1:56734:80'
+    volumes:
+      - './neural_network:/app'
+    networks:
+      - api
 networks:
   api:
     driver: bridge
