@@ -8,11 +8,11 @@ class ApiResponse
 {
     /**
      * @param string $message
-     * @param array $data
+     * @param array|null $data
      *
      * @return JsonResponse
      */
-    public static function success(array $data = [], string $message = 'success'): JsonResponse
+    public static function success(array|null $data = [], string $message = 'success'): JsonResponse
     {
         return response()->json([
             'message' => $message,

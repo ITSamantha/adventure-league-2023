@@ -10,16 +10,19 @@ use Illuminate\Support\Collection;
 class Transformer
 {
     /**
-     * @param Collection|LengthAwarePaginator|Model $data
+     * @param Collection|LengthAwarePaginator|Model|null $data
      * @param class-string<AbstractTransformer> $transformer
      *
-     * @return array
+     * @return array|null
      */
-    public static function transform(Model|LengthAwarePaginator|Collection $data, string $transformer): array
+    public static function transform(Model|LengthAwarePaginator|Collection|null $data, string $transformer): array|null
     {
         $transformer = new $transformer;
 
-        if ($data instanceof Model) {
+        if (is_null($data)) {
+            $transformedData = null;
+        }
+        else if ($data instanceof Model) {
             $transformedData = $transformer->transform($data);
         } else {
             $transformedData = $data->map(function ($item) use ($transformer) {
