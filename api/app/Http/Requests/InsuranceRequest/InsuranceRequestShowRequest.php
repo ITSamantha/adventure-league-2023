@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Requests\Auth;
+namespace App\Http\Requests\InsuranceRequest;
 
 use App\Http\Requests\ApiRequest;
 
-class RegisterRequest extends ApiRequest
+class InsuranceRequestShowRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return true;
+        return !is_null($this->getRequestUser());
     }
 
     /**
@@ -22,10 +22,7 @@ class RegisterRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string',
-            'surname' => 'required|string',
-            'patronymic' => 'nullable|string',
-            'telegram_id' => 'required|integer|unique:users,telegram_id'
+
         ];
     }
 }
