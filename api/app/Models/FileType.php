@@ -27,5 +27,5 @@ class FileType extends Model
     public const PHOTO = 1;
     public const VIDEO = 2;
     public const DOCUMENT = 3;
-
+    public const TEXT = 4;
 }
