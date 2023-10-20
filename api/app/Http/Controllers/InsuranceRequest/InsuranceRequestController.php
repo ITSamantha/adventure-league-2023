@@ -12,6 +12,7 @@ use App\Transformers\InsuranceRequestTransformer;
 use App\UseCases\InsuranceRequest\InsuranceRequestIndexUseCase;
 use App\UseCases\InsuranceRequest\InsuranceRequestSaveUseCase;
 use App\UseCases\InsuranceRequest\InsuranceRequestShowUseCase;
+use App\UseCases\InsuranceRequest\InsuranceRequestUpdateStatusUseCase;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -48,7 +49,7 @@ class InsuranceRequestController
         );
     }
 
-    public function updateStatus(InsuranceRequestUpdateStatusRequest $request): JsonResponse
+    public function updateStatus(InsuranceRequestUpdateStatusRequest $request, InsuranceRequestUpdateStatusUseCase $case): JsonResponse
     {
         $case($request);
 

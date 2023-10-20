@@ -2,6 +2,7 @@
 
 namespace App\Transformers;
 
+use App\Models\Role;
 use App\Models\User;
 
 class UserTransformer extends AbstractTransformer
@@ -11,7 +12,13 @@ class UserTransformer extends AbstractTransformer
         return [
             'id' => $user->id,
             'telegram_id' => $user->telegram_id,
-            'name' => $user->full_name, // todo role
+            'name' => $user->full_name,
+            'roles' => $user->roles->transform(function (Role $role) {
+                return [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                ];
+            }),
         ];
     }
 }
