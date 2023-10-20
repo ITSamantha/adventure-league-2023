@@ -18,6 +18,7 @@ class TypesSeeder extends GenericSeeder
             FileType::PHOTO => ['name' => 'Фото'],
             FileType::VIDEO => ['name' => 'Видео'],
             FileType::DOCUMENT => ['name' => 'Документ'],
+            FileType::TEXT => ['name' => 'Текст'],
         ],
         InsuranceObjectType::class => [
             InsuranceObjectType::COUNTRY_HOUSE => ['name' => 'Загородный дом'],

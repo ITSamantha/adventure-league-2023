@@ -55,9 +55,7 @@ class User extends Model
 
     public function addRole(int $roleId)
     {
-        $this->roles()->create([
-            'role_id' => $roleId,
-        ]);
+        $this->roles()->attach([$roleId]);
     }
 
     /**

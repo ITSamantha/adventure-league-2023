@@ -6,10 +6,11 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    protected $seeders = [
-        StatusesSeeder::class,
-        TypesSeeder::class,
-        DescriptionSeeder::class,
+    protected array $seeders = [
+//        StatusesSeeder::class,
+//        TypesSeeder::class,
+//        DescriptionSeeder::class,
+        PermissionsSeeder::class,
     ];
     /**
      * Seed the application's database.
