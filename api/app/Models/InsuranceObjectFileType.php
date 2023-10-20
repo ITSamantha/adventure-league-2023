@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * App\Models\InsuranceObjectFileType
@@ -16,6 +16,11 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $is_editable
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ *
+ * @property-read FileType $fileType
+ * @property-read FileDescription $fileDescription
+ * @property-read InsuranceObjectFileType $insuranceObjectFileType
+ *
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectFileType newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectFileType newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectFileType query()
@@ -27,12 +32,24 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectFileType whereIsEditable($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectFileType whereMinPhotoCount($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceObjectFileType whereUpdatedAt($value)
- * @mixin \Eloquent
  */
 class InsuranceObjectFileType extends Model
 {
-    use HasFactory;
     protected $guarded = [];
     protected $table = 'insurance_object_file_types';
 
+    public function fileType(): BelongsTo
+    {
+        return $this->belongsTo(FileType::class, 'file_type_id', 'id');
+    }
+
+    public function fileDescription(): BelongsTo
+    {
+        return $this->belongsTo(FileDescription::class, 'file_description_id', 'id');
+    }
+
+    public function insuranceObjectType(): BelongsTo
+    {
+        return $this->belongsTo(InsuranceObjectFileType::class, 'insurance_object_type_id', 'id');
+    }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -33,13 +32,16 @@ use Illuminate\Support\Carbon;
  */
 class InsuranceRequest extends Model
 {
-    use HasFactory;
-
     protected $guarded = [];
     protected $table = 'insurance_requests';
 
     public function status(): BelongsTo
     {
         return $this->belongsTo(InsuranceRequestStatus::class, 'insurance_request_status_id', 'id');
+    }
+
+    public function updateStatus(int $statusId)
+    {
+        $this->insurance_request_status_id = $statusId;
     }
 }

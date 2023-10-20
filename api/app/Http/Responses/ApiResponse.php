@@ -3,16 +3,17 @@
 namespace App\Http\Responses;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ApiResponse
 {
     /**
-     * @param string $message
-     * @param array|null $data
+     * @param array|LengthAwarePaginator|null $data
      *
+     * @param string $message
      * @return JsonResponse
      */
-    public static function success(array|null $data = [], string $message = 'success'): JsonResponse
+    public static function success(array|LengthAwarePaginator|null $data = [], string $message = 'success'): JsonResponse
     {
         return response()->json([
             'message' => $message,

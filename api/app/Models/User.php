@@ -60,6 +60,20 @@ class User extends Model
         ]);
     }
 
+    /**
+     * @param array|int $roles
+     *
+     * @return bool
+     */
+    public function hasRole(array|int $roles): bool
+    {
+        if (!is_array($roles)) {
+            $roles = [$roles];
+        }
+
+        return $this->roles()->whereIn('id', $roles)->count() > 0;
+    }
+
     public function getFullNameAttribute(): string
     {
         return $this->name . ' ' . $this->surname . ($this->patronymic ? ' ' . $this->patronymic : '');

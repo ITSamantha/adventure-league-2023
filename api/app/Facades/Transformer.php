@@ -13,9 +13,9 @@ class Transformer
      * @param Collection|LengthAwarePaginator|Model|null $data
      * @param class-string<AbstractTransformer> $transformer
      *
-     * @return array|null
+     * @return array|LengthAwarePaginator|null
      */
-    public static function transform(Model|LengthAwarePaginator|Collection|null $data, string $transformer): array|null
+    public static function transform(Model|LengthAwarePaginator|Collection|null $data, string $transformer): array|LengthAwarePaginator|null
     {
         $transformer = new $transformer;
 
@@ -24,6 +24,12 @@ class Transformer
         }
         else if ($data instanceof Model) {
             $transformedData = $transformer->transform($data);
+        } else if ($data instanceof LengthAwarePaginator) {
+            $data->getCollection()->map(function ($item) use ($transformer) {
+                return $transformer->transform($item);
+            })->toArray();
+
+            $transformedData = $data;
         } else {
             $transformedData = $data->map(function ($item) use ($transformer) {
                 return $transformer->transform($item);

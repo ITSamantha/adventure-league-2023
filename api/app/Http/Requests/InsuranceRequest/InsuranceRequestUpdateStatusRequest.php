@@ -3,15 +3,21 @@
 namespace App\Http\Requests\InsuranceRequest;
 
 use App\Http\Requests\ApiRequest;
+use App\Models\Role;
 
-class InsuranceRequestSaveRequest extends ApiRequest
+class InsuranceRequestUpdateStatusRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return !is_null($this->getRequestUser());
+        $user = $this->getRequestUser();
+
+        return $user->hasRole([
+            Role::admin,
+            Role::moderator,
+        ]);
     }
 
     /**
@@ -22,8 +28,8 @@ class InsuranceRequestSaveRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'object_type_id' => 'required|integer|exists:insurance_object_types,id',
-            'comment' => 'required|string',
+            'id' => 'required|integer|exists:insurance_requests,id',
+            'status_id' => 'required|integer|exists:insurance_request_statuses,id',
         ];
     }
 }

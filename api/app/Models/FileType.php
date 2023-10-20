@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -19,12 +18,9 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|FileType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|FileType whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|FileType whereUpdatedAt($value)
- * @mixin \Eloquent
  */
 class FileType extends Model
 {
-
-    use HasFactory;
     protected $guarded = [];
     protected $table = 'file_types';
 

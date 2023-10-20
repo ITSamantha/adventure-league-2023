@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Requests\InsuranceRequest;
+namespace App\Http\Requests\InsuranceObjectFileType;
 
 use App\Http\Requests\ApiRequest;
+use Illuminate\Foundation\Http\FormRequest;
 
-class InsuranceRequestSaveRequest extends ApiRequest
+class InsuranceObjectFileTypeShowRequest extends ApiRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,8 +23,7 @@ class InsuranceRequestSaveRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'object_type_id' => 'required|integer|exists:insurance_object_types,id',
-            'comment' => 'required|string',
+            'insurance_object_id' => 'required|integer|exists:insurance_object_types,id',
         ];
     }
 }

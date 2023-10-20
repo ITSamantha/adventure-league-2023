@@ -10,8 +10,8 @@ class InsuranceRequestIndexRequest extends ApiRequest
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
-    {
-        return !is_null($this->getRequestUser());
+    {return true;
+//        return !is_null($this->getRequestUser());
     }
 
     /**
@@ -22,7 +22,7 @@ class InsuranceRequestIndexRequest extends ApiRequest
     public function rules(): array
     {
         return [
-
+            'page' => 'sometimes|integer',
         ];
     }
 }

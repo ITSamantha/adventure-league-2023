@@ -6,6 +6,7 @@ use App\Facades\Transformer;
 use App\Http\Requests\InsuranceRequest\InsuranceRequestIndexRequest;
 use App\Http\Requests\InsuranceRequest\InsuranceRequestSaveRequest;
 use App\Http\Requests\InsuranceRequest\InsuranceRequestShowRequest;
+use App\Http\Requests\InsuranceRequest\InsuranceRequestUpdateStatusRequest;
 use App\Http\Responses\ApiResponse;
 use App\Transformers\InsuranceRequestTransformer;
 use App\UseCases\InsuranceRequest\InsuranceRequestIndexUseCase;
@@ -38,12 +39,21 @@ class InsuranceRequestController
         );
     }
 
-    public function save(InsuranceRequestSaveRequest $request, InsuranceRequestSaveUseCase $case): JsonResponse
+    public function store(InsuranceRequestSaveRequest $request, InsuranceRequestSaveUseCase $case): JsonResponse
     {
         $data = $case($request);
 
         return ApiResponse::success(
             Transformer::transform($data, InsuranceRequestTransformer::class)
         );
+    }
+
+    public function updateStatus(InsuranceRequestUpdateStatusRequest $request): JsonResponse
+    {
+        $case($request);
+
+        return ApiResponse::success([
+            'success' => true,
+        ]);
     }
 }
