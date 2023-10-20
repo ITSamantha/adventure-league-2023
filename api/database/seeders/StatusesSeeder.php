@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\AttachmentStatus;
+use App\Models\InsuranceRequestAttachmentStatus;
 use App\Models\InsuranceRequestStatus;
 
 class StatusesSeeder extends GenericSeeder
@@ -20,6 +21,12 @@ class StatusesSeeder extends GenericSeeder
             InsuranceRequestStatus::DECLINED => ['name' => 'Отклонено'],
             InsuranceRequestStatus::REVISION => ['name' => 'Нуждается в доработке'],
             InsuranceRequestStatus::PENDING => ['name' => 'На рассмотрении'],
-        ]
+        ],
+        InsuranceRequestAttachmentStatus::class => [
+            InsuranceRequestAttachmentStatus::APPROVED => ['name' => 'Одобрено'],
+            InsuranceRequestAttachmentStatus::DECLINED => ['name' => 'Отклонено'],
+            InsuranceRequestAttachmentStatus::REVISION => ['name' => 'Нуждается в доработке'],
+            InsuranceRequestAttachmentStatus::PENDING => ['name' => 'На рассмотрении'],
+        ],
     ];
 }

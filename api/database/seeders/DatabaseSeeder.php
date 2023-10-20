@@ -7,9 +7,9 @@ use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     protected array $seeders = [
-//        StatusesSeeder::class,
-//        TypesSeeder::class,
-//        DescriptionSeeder::class,
+        StatusesSeeder::class,
+        TypesSeeder::class,
+        DescriptionSeeder::class,
         PermissionsSeeder::class,
     ];
     /**
