@@ -5,7 +5,9 @@ from flask import jsonify, request
 
 from model.model import create_dataframe_from_photos
 from utils.images import base64_to_image
+from os.path import join, dirname, realpath
 
+STATIC_PATH = '/app/static/'
 
 
 
@@ -17,7 +19,7 @@ def upload_images():
             try:
                 images = list(map(base64_to_image, data['images']))
                 df = create_dataframe_from_photos(images)
-                lr = joblib.load('/home/artem/PycharmProjects/imageproc/model/logistic_regression_model.pkl')
+                lr = joblib.load(STATIC_PATH + 'logistic_regression_model.pkl')
                 return jsonify({"result": lr.predict_proba(df).tolist()})
             except Exception as e:
                 print(e)
@@ -32,7 +34,7 @@ def upload_images():
 
 @app.route('/')
 def home():
-    lr = joblib.load('/home/artem/PycharmProjects/imageproc/model/logistic_regression_model.pkl')
+    lr = joblib.load(STATIC_PATH + 'logistic_regression_model.pkl')
     return jsonify({'hello': 'world'})
 
 
