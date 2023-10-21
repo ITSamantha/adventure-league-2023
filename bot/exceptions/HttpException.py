@@ -4,6 +4,7 @@ class HttpException(Exception):
             self.message = args[0]
         else:
             self.message = None
+        super().__init__(self.message)
 
     def __str__(self):
-        return {self.message}
+        return self.message

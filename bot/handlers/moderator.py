@@ -32,7 +32,7 @@ def handle_moderator_list_of_requests(message, bot):
         bot.send_message(user_id, status_message, reply_markup=markup)
     else:
         bot.send_message(user_id, "Нет текущих заявок на осмотр.")
-    handle_menu(message)
+    handle_menu(message, bot)
 
 
 def register_handlers_moderator(bot):

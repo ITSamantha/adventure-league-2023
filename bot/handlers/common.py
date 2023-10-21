@@ -6,6 +6,12 @@ from telebot import types
 from converters.converter import StringConverter
 from dictionaries.help import user_helps
 from dictionaries.user_data import user_data, USER_DATA_LENGTH
+from enums import RequestStatus
+from enums.BotMessageException import BotMessageException
+from enums.UserRole import UserRole
+from exceptions.ClientException import ClientException
+from exceptions.ServerException import ServerException
+from handlers.client import send_history_page
 from http_client.http_client import HttpClient
 from validators.validator import Validator
 
@@ -15,26 +21,51 @@ requests = [{'id': x, 'type': 'Транспортное средство', 'desc
 
 remove_keyboard = types.ReplyKeyboardRemove(selective=False)
 
+PAGE_SIZE = 5
+PARSE_MODE = 'Markdown'
+
 
 def handle_start(message, bot):
     user_id = str(message.chat.id)
-    bot.send_message(user_id, 'Здравствуйте, {last_name} {first_name}! Вас приветствует бот Совкомбанк Digital☺️\n'
-                              'Я помогу Вам быстро и легко осуществить осмотр страхуемого имущества.'.format(
-        first_name=(message.from_user.first_name if message.from_user.first_name else ''),
-        last_name=(message.from_user.last_name if message.from_user.last_name else '')))
+    first_name = (message.from_user.first_name if message.from_user.first_name else '')
+    last_name = (message.from_user.last_name if message.from_user.last_name else '')
+    welcome_message = ('Здравствуйте, ___{last_name} {first_name}___! Вас приветствует бот Совкомбанк Digital☺️\n'
+                       'Я помогу Вам быстро и легко осуществить осмотр страхуемого имущества.'.format(
+        first_name=first_name,
+        last_name=last_name))
+    bot.send_message(user_id, welcome_message, parse_mode=PARSE_MODE)
 
-    id = str(1265630862)
-    user = HttpClient.get('get_user', user_id)
-    if user['data'] and user_id != id:
-        bot.send_message(user_id, 'Вы уже зарегистированы в системе Совкомбанк Digital,'
-                                  ' {name}!'
-                                  '\nРады Вас видеть снова!☺️'.format(name=user['data']['name']))
-        handle_menu(message, bot)
-    else:
-        markup = types.InlineKeyboardMarkup()
-        registration = types.InlineKeyboardButton(text='Регистрация', callback_data='handle_registration')
-        markup.add(registration)
-        bot.send_message(user_id, 'Ух! Вы новичок! Необходимо пройти регистрацию☺️', reply_markup=markup)
+    try:
+        user = HttpClient.get('get_user', user_id)
+        if user['data']:
+            if user_id not in users:
+                users[user_id] = {}
+            users[user_id]['roles'] = user['data']['roles']
+            current_role = users[user_id]['roles'][0]['name']
+            welcome_message = ('Вы уже зарегистированы в системе Совкомбанк Digital,'
+                               ' ___{name}___!'
+                               '\nРады Вас видеть снова!☺️'
+                               '\nВы авторизованы как ___{role}___.'.format(name=user['data']['name'],
+                                                                            role=current_role))
+            msg = bot.send_message(user_id, welcome_message, parse_mode=PARSE_MODE)
+
+            while not msg:
+                pass
+            handle_menu(message, bot)
+        else:
+            markup = types.InlineKeyboardMarkup()
+            registration = types.InlineKeyboardButton(text='Регистрация', callback_data='handle_registration')
+            markup.add(registration)
+            bot.send_message(user_id, 'Ух! Вы новичок! Необходимо пройти регистрацию☺️', reply_markup=markup)
+    except ClientException as e:
+        bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
+        print(str(e))
+    except ServerException as e:
+        bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+        print(str(e))
+    except Exception as e:
+        bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+        print(str(e))
 
 
 def handle_registration(call, bot):
@@ -58,13 +89,26 @@ def approve_callback_registration(call, bot):
         try:
             user = users[str(call.message.chat.id)]
             user['telegram_id'] = user_id
-            request = HttpClient.post('register', str(call.message.chat.id), json=user)
+            request = HttpClient.post('register', user_id, json=user)
             bot.send_message(call.message.chat.id,
                              "Отлично! Регистрация прошла успешно. Теперь можно приступать к работе!☺️")
             del users[user_id]
-            users[user_id] = {}
+
+            user = HttpClient.get('get_user', user_id)
+            if user_id not in users:
+                users[user_id] = {}
+            users[user_id]['roles'] = user['data']['roles']
+
+        except ClientException as e:
+            bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
+            print(str(e))
+        except ServerException as e:
+            bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+            print(str(e))
         except Exception as e:
-            print(e)
+            bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+            print(str(e))
+
         handle_menu(call.message, bot)
     elif mode == "no":
         bot.send_message(call.message.chat.id, 'Окей! Попробуй еще раз☺️')
@@ -72,13 +116,21 @@ def approve_callback_registration(call, bot):
 
 
 def handle_menu(message, bot):
-    user_id = message.chat.id
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    if False:
+    user_id = str(message.chat.id)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    if user_id not in users:
+        users[user_id] = {}
+    role = users[user_id]['roles'][0]['id']
+    if role == UserRole.MODERATOR.value:
         markup.add("Просмотр списка заявок", "Справка модератора")
-    else:
+    elif role == UserRole.USER.value:
         markup.add("Подача новой заявки", "Справка пользователя")
         markup.add("Просмотр истории заявок", "Просмотр статуса заявок")
+        markup.add("Техническая поддержка")
+    elif role == UserRole.ADMIN.value:
+        markup.add("Подача новой заявки", "Справка пользователя")
+        markup.add("Просмотр истории заявок", "Просмотр статуса заявок")
+        markup.add("Техническая поддержка")
     bot.send_message(user_id, "Выберите действие:", reply_markup=markup)
 
 
@@ -100,7 +152,7 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
             keyboard.row(key_yes, key_no)
             user = users[user_id]
             text = f'___Проверьте, пожалуйста, правильность введенных данных___\n\nФамилия: {user["surname"]}\nИмя: {user["name"]}\nОтчество: {user["patronymic"]}'
-            bot.send_message(message.from_user.id, text, reply_markup=keyboard, parse_mode='Markdown')
+            bot.send_message(message.from_user.id, text, reply_markup=keyboard, parse_mode=PARSE_MODE)
         else:
             bot.send_message(message.from_user.id, f"Введите {user_data[type_id + 1]['value']}:")
             bot.register_next_step_handler(message, get_text_user_data, type_id + 1, bot)
@@ -111,16 +163,19 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
 
 
 def handle_help(message, bot):
-    user_id = message.chat.id
+    user_id = str(message.chat.id)
     bot.send_message(user_id, "Доступны несколько разделов справки😌", reply_markup=remove_keyboard)
-    user_id = message.chat.id
     keyboard = types.InlineKeyboardMarkup()
     # Тут разделение на модератора и пользователя
-    for help in user_helps.keys():
-        hp = types.InlineKeyboardButton(text=user_helps[help]['title'], parse_mode='Markdown',
-                                        callback_data=f'helpuser_{help}')
+    if user_id not in users:
+        users[user_id] = {}
+    role = users[user_id]['roles'][0]['id']
+    help_list = user_helps[role]
+    for k, v in help_list.items():
+        hp = types.InlineKeyboardButton(text=v['title'], parse_mode=PARSE_MODE,
+                                        callback_data=f'helpuser_{k}')
         keyboard.add(hp)
-    bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode='Markdown')
+    bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode=PARSE_MODE)
 
 
 def handle_help_button_pressed(call, bot):
@@ -145,26 +200,32 @@ def handle_help_button_pressed(call, bot):
 
 
 def handle_page_inline_button_pressed(call, bot):
-    """user_id = str(call.message.chat.id)
+    user_id = str(call.message.chat.id)
+    bot.delete_message(user_id, call.message.message_id)
     if call.data == 'prev_page':
-        # current_page -= 1
-        send_history_page(user_id, bot)
+        users[user_id]['current_page'] -= 1
     elif call.data == 'next_page':
-        # current_page += 1
-        send_history_page(user_id, bot)"""
+        users[user_id]['current_page'] += 1
+    send_history_page(user_id, bot)
 
 
 def add_file(message, bot):
-    print("YAY")
     file_name = message.document.file_name
     file_info = bot.get_file(message.document.file_id)
-    downloaded_file = bot.download_file(file_info.file_path)
-    # with open('documents' + file_name, 'wb') as new_file:
-    # new_file.write(downloaded_file)
 
 
 def command_default(m, bot):
     bot.send_message(m.chat.id, "Я не знаю данной команды😢\nПопробуйте другую...")
+
+
+def create_markup_for_request(user_requests):
+    markup = types.InlineKeyboardMarkup()
+    for i, request in enumerate(user_requests):
+        markup.row(
+            types.InlineKeyboardButton(
+                f"{request['id']}. {request['type']}, Статус: Одобрена{RequestStatus.RequestStatus.OK.value}\n",
+                callback_data=f'request_{i}'))
+    return markup
 
 
 def register_handlers_common(bot):
