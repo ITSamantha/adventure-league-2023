@@ -17,7 +17,10 @@ class TelegramService
         $paths = [];
 
         foreach ($links as $link) {
-            $path = Str::random(40) . '.jpg'; // todo ext
+            $origFileName = explode('/', $link);
+            $extension = explode('.', $origFileName[count($origFileName) - 1])[1];
+
+            $path = Str::random(40) . '.' . $extension;
 
             copy($link, Storage::disk('images')->path($path));
 

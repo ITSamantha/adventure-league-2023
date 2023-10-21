@@ -11,6 +11,7 @@ use App\Models\InsuranceRequestAttachment;
 use App\Models\InsuranceRequestAttachmentStatus;
 use App\Services\NeuralNetService;
 use App\Services\TelegramService;
+use App\Services\TGBotService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -92,12 +93,13 @@ class InsuranceRequestAttachmentStoreUseCase
             return $result;
         }
 
-        if ($fileTypeId === FileType::PHOTO) {
-//            NeuralNetService::sendToValidation($result['data']);
-        }
-
         if ($request->input('is_last')) {
+            // send to nn validation
+            if ($fileTypeId === FileType::PHOTO) {
+                NeuralNetService::sendToValidation($result['data']);
+            }
             // ping bot if last
+            TGBotService::lol();
         }
 
         return $result;

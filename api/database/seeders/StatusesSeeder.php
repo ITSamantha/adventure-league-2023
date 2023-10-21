@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\AttachmentStatus;
 use App\Models\InsuranceRequestAttachmentStatus;
 use App\Models\InsuranceRequestStatus;
+use App\Models\NeuralNetRequestStatus;
 
 class StatusesSeeder extends GenericSeeder
 {
@@ -27,6 +28,9 @@ class StatusesSeeder extends GenericSeeder
             InsuranceRequestAttachmentStatus::DECLINED => ['name' => 'Отклонено'],
             InsuranceRequestAttachmentStatus::REVISION => ['name' => 'Нуждается в доработке'],
             InsuranceRequestAttachmentStatus::PENDING => ['name' => 'На рассмотрении'],
+        ],
+        NeuralNetRequestStatus::class => [
+
         ],
     ];
 }
