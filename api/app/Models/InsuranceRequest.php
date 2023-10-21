@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * App\Models\InsuranceRequest
@@ -18,6 +20,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  *
  * @property-read InsuranceRequestStatus $status
+ * @property-read Collection<InsuranceRequestAttachment> $attachments
  *
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequest newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequest newQuery()
@@ -43,5 +46,10 @@ class InsuranceRequest extends Model
     public function updateStatus(int $statusId)
     {
         $this->insurance_request_status_id = $statusId;
+    }
+
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(InsuranceRequestAttachment::class, 'insurance_request_id', 'id');
     }
 }
