@@ -45,6 +45,17 @@ def apply_random_transformation(image):
     return image
 
 
+def create_dataframe_from_photos(images) -> pd.DataFrame:
+    data = pd.DataFrame(list(map(init_photo_data, images)))
+    images = resize_images(images)
+    data['blur'] = get_blur_metrics_by_photos(images)
+    data['light'] = get_light_metrics_by_photos(images)
+    data['contrast'] = get_contrast_metrics_by_photos(images)
+    data['noise'] = get_noise_metrics_by_photos(images)
+    data['darkness'] = get_dark_metrics_by_photos(images)
+    return data
+
+
 def train():
     images = []
     images_bad = []
@@ -60,15 +71,7 @@ def train():
 
     responses = [1 for _ in images] + [0 for _ in images_bad]
     images = images + images_bad
-
-    data = pd.DataFrame(list(map(init_photo_data, images)))
-    images = resize_images(images)
-    data['blur'] = get_blur_metrics_by_photos(images)
-    data['light'] = get_light_metrics_by_photos(images)
-    data['contrast'] = get_contrast_metrics_by_photos(images)
-    data['noise'] = get_noise_metrics_by_photos(images)
-    data['darkness'] = get_dark_metrics_by_photos(images)
-
+    data = create_dataframe_from_photos(images)
     lr = LogisticRegression()
     lr.fit(data, responses)
     model_filename = 'logistic_regression_model.pkl'
