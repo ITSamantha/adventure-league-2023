@@ -11,5 +11,6 @@ def handle_photo(message):
 
 
 def register_handlers_photo(bot):
-    bot.register_message_handler(handle_photo,
-                                 func=lambda message: True)
+    """bot.register_message_handler(handle_photo,
+                                 func=lambda message: True)"""
+    pass

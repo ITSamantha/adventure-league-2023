@@ -16,8 +16,6 @@ from validators.validator import Validator
 
 users = {}
 
-requests = [{'id': x, 'type': 'Транспортное средство', 'description': 'd', 'photos': None} for x in range(100)]
-
 
 def handle_start(message, bot):
     """Запуск бота для пользователя."""
@@ -101,18 +99,12 @@ def approve_callback_registration(call, bot):
 
     if mode == Mode.YES.value:
         try:
-            user = users[str(call.message.chat.id)]
+            check_user_in_users(user_id)
+            user = users[user_id]
             user['telegram_id'] = user_id
-            response = HttpClient.post('register', user_id, json=user)
+            HttpClient.post('register', user_id, json=user)
             bot.send_message(call.message.chat.id,
                              "Отлично! Регистрация прошла успешно. Теперь можно приступать к работе!☺️")
-            del users[user_id]
-
-            user = HttpClient.get('get_user', user_id)
-            if user_id not in users:
-                users[user_id] = {}
-            users[user_id]['roles'] = user['data']['roles']
-
         except ClientException as e:
             bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
             print(str(e))
@@ -133,13 +125,31 @@ def approve_callback_registration(call, bot):
 
 
 def handle_menu(message, bot):
+    """Главное меню чат-бота."""
+
     user_id = str(message.chat.id)
+
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
 
     try:
-        if user_id not in users:
-            users[user_id] = {}
+        check_user_in_users(user_id)
 
+        user_roles = [data['id'] for data in database.get_user(user_id)['data']['roles']]
+
+        if UserRole.ADMIN.value in user_roles:
+            markup.add("Работа с модераторами", "Просмотр заявок")
+
+        if UserRole.MODERATOR.value in user_roles:
+            markup.add("Просмотр списка заявок", "Справка модератора")
+
+        if UserRole.USER.value in user_roles:
+            markup.add("Подача новой заявки", "Справка пользователя")
+            markup.add("Просмотр истории заявок", "Просмотр статуса заявок")
+            markup.row("Связаться с модератором")
+
+        markup.row("Техническая поддержка")
+
+        bot.send_message(user_id, "Выберите действие:", reply_markup=markup)
 
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
@@ -151,53 +161,55 @@ def handle_menu(message, bot):
         bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
         print(str(e))
 
-    role = users[user_id]['roles'][0]['id']
-
-    if role == UserRole.MODERATOR.value:
-        markup.add("Просмотр списка заявок", "Справка модератора")
-    elif role == UserRole.USER.value:
-        markup.add("Подача новой заявки", "Справка пользователя")
-        markup.add("Просмотр истории заявок", "Просмотр статуса заявок")
-        markup.row("Связаться с модератором")
-    elif role == UserRole.ADMIN.value:
-        markup.add("Работа с модераторами", "Просмотр заявок")
-    markup.row("Техническая поддержка")
-
-    bot.send_message(user_id, "Выберите действие:", reply_markup=markup)
-
 
 def handle_requests(message, bot, is_history=False):
+    """Просмотр истории и статуса заявок."""
     user_id = str(message.chat.id)
-    current_page = handlers.common.users[user_id]['current_page']
-    start_index = current_page * handlers.common.PAGE_SIZE
-    end_index = start_index + handlers.common.PAGE_SIZE
 
-    if is_history:
-        user_requests = requests[start_index:end_index]
-        empty_message = "История заявок пуста."
-        message_template = "История заявок:\n"
-    else:
-        user_requests = requests[start_index:end_index]
-        empty_message = "Нет текущих заявок на осмотр."
-        message_template = "Статус текущих заявок на осмотр:\n"
+    try:
+        current_page = handlers.common.users[user_id]['current_page']
+        start_index = current_page * interface.PAGE_SIZE
+        end_index = start_index + interface.PAGE_SIZE
 
-    if user_requests:
-        status_message = message_template
-        markup = handlers.common.create_markup_for_request(user_requests)
-        left = types.InlineKeyboardButton("⬅️", callback_data=f'prevpage_{"history" if is_history else "status"}')
-        right = types.InlineKeyboardButton("➡️", callback_data=f'nextpage_{"history" if is_history else "status"}')
-        if current_page > 0 and end_index < len(requests):
-            markup.row(left, right)
+        requests = database.get_requests_page(user_id, page=(current_page + 1))
+
+        total_pages = requests['data']['total']
+
+        if is_history:
+            empty_message = "История заявок пуста."
+            message_template = "История заявок:\n"
         else:
-            if end_index < len(requests):
-                markup.add(right)
-            else:
-                markup.add(left)
-        bot.send_message(user_id, status_message, reply_markup=markup)
-    else:
-        bot.send_message(user_id, empty_message)
+            empty_message = "Нет текущих заявок на осмотр."
+            message_template = "Статус текущих заявок на осмотр:\n"
 
-    handlers.common.handle_menu(message, bot)
+        if requests:
+            status_message = message_template
+            markup = interface.create_markup_for_request(requests)
+            left = types.InlineKeyboardButton("⬅️", callback_data=f'prevpage_{"history" if is_history else "status"}')
+            right = types.InlineKeyboardButton("➡️", callback_data=f'nextpage_{"history" if is_history else "status"}')
+
+            if current_page > 0 and end_index < total_pages:
+                markup.row(left, right)
+            else:
+                if end_index < len(requests):
+                    markup.add(right)
+                else:
+                    markup.add(left)
+            bot.send_message(user_id, status_message, reply_markup=markup)
+        else:
+            bot.send_message(user_id, empty_message)
+
+        handlers.common.handle_menu(message, bot)
+
+    except ClientException as e:
+        bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
+        print(str(e))
+    except ServerException as e:
+        bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+        print(str(e))
+    except Exception as e:
+        bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+        print(str(e))
 
 
 def get_text_user_data(message: types.Message, type_id: int, bot):
@@ -218,7 +230,7 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
             keyboard.row(key_yes, key_no)
             user = users[user_id]
             text = f'___Проверьте, пожалуйста, правильность введенных данных___\n\nФамилия: {user["surname"]}\nИмя: {user["name"]}\nОтчество: {user["patronymic"]}'
-            bot.send_message(message.from_user.id, text, reply_markup=keyboard, parse_mode=PARSE_MODE)
+            bot.send_message(message.from_user.id, text, reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
         else:
             bot.send_message(message.from_user.id, f"Введите {user_data[type_id + 1]['value']}:")
             bot.register_next_step_handler(message, get_text_user_data, type_id + 1, bot)
@@ -238,10 +250,10 @@ def handle_help(message, bot):
     role = users[user_id]['roles'][0]['id']
     help_list = user_helps[role]
     for k, v in help_list.items():
-        hp = types.InlineKeyboardButton(text=v['title'], parse_mode=PARSE_MODE,
+        hp = types.InlineKeyboardButton(text=v['title'], parse_mode=interface.PARSE_MODE,
                                         callback_data=f'help_{k}')
         keyboard.add(hp)
-    bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode=PARSE_MODE)
+    bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
 
 
 def handle_page_inline_button_pressed(call, bot):
