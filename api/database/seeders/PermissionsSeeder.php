@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\AttachmentStatus;
-use App\Models\AttachmentStatus;
 use App\Models\InsuranceRequestStatus;
 use App\Models\Role;
 
