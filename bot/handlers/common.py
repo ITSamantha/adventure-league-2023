@@ -141,14 +141,16 @@ def handle_menu(message, bot):
             markup.add("Работа с модераторами", "Просмотр заявок")
 
         if UserRole.MODERATOR.value in user_roles:
-            markup.add("Просмотр списка заявок", "Справка модератора")
+            markup.add("Просмотр списка заявок", "FAQ")
 
-        if UserRole.USER.value in user_roles:
-            markup.add("Подача новой заявки", "Справка пользователя")
-            markup.add("Просмотр истории заявок", "Просмотр статуса заявок")
+        if UserRole.MODERATOR.value not in user_roles and UserRole.USER.value in user_roles:
+            markup.add("Подача новой заявки", "Как пройти осмотр?")
+            markup.add("Просмотр истории заявок", "Заявки в обработке")
             markup.row("Связаться с модератором")
+            markup.row("Техническая поддержка")
+        elif UserRole.USER.value in user_roles:
+            markup.add("Подача новой заявки", "Заявки в обработке")
 
-        markup.row("Техническая поддержка")
 
         bot.send_message(user_id, "Выберите действие:", reply_markup=markup)
 

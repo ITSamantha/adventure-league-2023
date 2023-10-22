@@ -12,4 +12,5 @@ def get_requests_page(user_id, page=1):
 
 
 def get_user_roles(user_id):
-    return [data['id'] for data in get_user(user_id)['data']]
+    user_data = get_user(user_id)
+    return list(map(lambda x : x['id'], user_data['data']['roles']))
