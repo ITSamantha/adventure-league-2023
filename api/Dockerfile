@@ -1,6 +1,6 @@
 FROM php:8.1-fpm
 
-WORKDIR /var/www/shop/backend
+WORKDIR /var/www/api
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
     unzip \
     git \
     curl \
-    libpq-dev
+    libpq-dev \
+    cron \
+    supervisor
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -24,4 +26,4 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-install pgsql pdo_pgsql zip exif pcntl
 
 EXPOSE 9000
-CMD ["php-fpm"]
+CMD /var/www/api/start.bash

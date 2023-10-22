@@ -18,6 +18,7 @@ services:
     image: certbot/certbot
     container_name: api_certbot
     volumes:
+      - ./api/supervisor:/etc/supervisor
       - ./api/certbot/conf:/etc/letsencrypt
       - ./api/certbot/www:/var/www/certbot
   laravel:
@@ -60,12 +61,6 @@ services:
       - './flask:/app'
     networks:
       - api
-  python_bot:
-    container_name: python_bot
-    restart: unless-stopped
-    build:
-      context: ./bot
-      dockerfile: Dockerfile
   neural_network:
     container_name: neural_network
     restart: unless-stopped
@@ -76,6 +71,14 @@ services:
       - '127.0.0.1:56734:80'
     volumes:
       - './neural_network:/app'
+    networks:
+      - api
+  python_bot:
+    container_name: python_bot
+    restart: unless-stopped
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
     networks:
       - api
 networks:
