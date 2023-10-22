@@ -72,7 +72,7 @@ class InsuranceRequestAttachmentStoreUseCase
                     ];
                 }
 
-                $ira->attachment_status_id = AttachmentStatus::REVISION;
+                $ira->attachment_status_id = AttachmentStatus::REVISION_BY_BOT;
 
                 $fileModels = File::createFromMany($files, [
                     'insurance_request_attachment_id' => $ira->id,
