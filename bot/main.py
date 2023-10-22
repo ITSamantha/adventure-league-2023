@@ -8,7 +8,7 @@ from handlers.common import register_handlers_common
 from handlers.client import register_handlers_client
 from handlers.admin import register_handlers_admin
 from handlers.moderator import register_handlers_moderator
-
+from handlers.photo import register_handlers_photo
 
 bootstrap()
 
@@ -26,8 +26,6 @@ current_page = 0
 GENERAL_PHOTO_REQUIREMENTS = "general-photo-requirements"
 HELP_TITLE_CATEGORY = "title"
 HELP_DESCRIPTION_CATEGORY = "title"
-
-
 
 """
 
@@ -92,12 +90,11 @@ statuses = {'OK': '✅', 'NOT OK': '❌', 'WAIT': '🕜'}
 
 
 def register_handlers_bot(_bot):
-
+    register_handlers_photo(_bot)
     register_handlers_client(_bot)
     register_handlers_moderator(_bot)
     register_handlers_admin(_bot)
     register_handlers_common(_bot)
-
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'), threaded=True)
 register_handlers_bot(bot)

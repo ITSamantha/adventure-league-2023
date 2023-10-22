@@ -146,6 +146,7 @@ def handle_approve_request(message, bot):
 def handle_request_information(message, bot):
     user_id = str(message.chat.id)
     try:
+
         json = {
             'insurance_object_id': handlers.common.users[user_id]['current_request']['insured_object_type_id']
         }
@@ -240,8 +241,9 @@ user_chat_id = 840181920  # Замените на chat_id юзера
 
 def start_chat(message, bot):
     if message.chat.id == moderator_chat_id or message.chat.id == user_chat_id:
-        markup = types.ReplyKeyboardRemove(selective=False)
-        bot.send_message(moderator_chat_id, "Чат начат. Напишите свое сообщение:")
+        markup = types.ReplyKeyboardMarkup()
+        markup.add("Свернуть", "Завершить чат")
+        bot.send_message(moderator_chat_id, f"Запрос на чат от {user_chat_id}.")
         bot.send_message(user_chat_id, "Чат начат. Напишите свое сообщение:", reply_markup=markup)
     else:
         bot.send_message(message.chat.id, "У вас нет доступа к чату.")
@@ -269,12 +271,11 @@ def register_handlers_client(bot):
                                  func=lambda message: False)
     bot.register_message_handler(handle_request_information,
                                  func=lambda message: False)
-
-    """
     bot.register_message_handler(start_chat,
                                  func=lambda message: message.text == "Связаться с модератором", pass_bot=True)
-    bot.register_message_handler(relay_message,
-                                 func=lambda message: True, pass_bot=True)"""
+    """bot.register_message_handler(relay_message,
+                                 func=lambda message: False, pass_bot=True)"""
+
     bot.register_callback_query_handler(callback_client_load_request,
                                         func=lambda call: re.search(r'^request', call.data), pass_bot=True)
     bot.register_callback_query_handler(handle_insured_objects, pass_bot=True,
