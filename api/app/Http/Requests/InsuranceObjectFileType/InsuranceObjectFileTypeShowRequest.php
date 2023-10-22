@@ -3,7 +3,6 @@
 namespace App\Http\Requests\InsuranceObjectFileType;
 
 use App\Http\Requests\ApiRequest;
-use Illuminate\Foundation\Http\FormRequest;
 
 class InsuranceObjectFileTypeShowRequest extends ApiRequest
 {

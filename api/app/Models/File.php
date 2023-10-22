@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * App\Models\File
@@ -33,7 +37,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|File whereOriginalPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|File whereTakenAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|File whereUpdatedAt($value)
- * @mixin \Eloquent
  */
 class File extends Model
 {
@@ -57,4 +60,35 @@ class File extends Model
         return $this->belongsTo(InsuranceRequestAttachment::class);
     }
 
+    /**
+     * @param $files
+     * @param $data
+     *
+     * @return Collection<File>
+     */
+    public static function createFromMany($files, $data): Collection
+    {
+        $createdFiles = collect();
+
+        foreach ($files as $path) {
+//            $extension = pathinfo($path, PATHINFO_EXTENSION);
+//            $newPath = Str::random(40) . '.' . $extension;
+//
+//            Storage::disk('images')->put($newPath, file_get_contents($path));
+//            unlink($path);  // delete tmp file from /tmp
+
+            //todo create geolocation, taken_at
+
+            $newFile = self::query()->create($data + [
+                'original_path' => $path,
+                'edited_path' => null,
+                'taken_at' => Carbon::now(),
+                'geolocation_id' => 1,
+            ]);
+
+            $createdFiles->add($newFile);
+        }
+
+        return $createdFiles;
+    }
 }
