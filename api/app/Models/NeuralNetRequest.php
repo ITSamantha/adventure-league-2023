@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class NeuralNetRequest extends Model
 {
     protected $fillable = [
-        'status_id',
+        'status_id', 'ir_id',
     ];
 
     public function status(): BelongsTo
