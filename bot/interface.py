@@ -7,6 +7,7 @@ remove_keyboard = types.ReplyKeyboardRemove(selective=False)
 PARSE_MODE = 'Markdown'
 
 PAGE_SIZE = 5
+INITIAL_VALUE = 0
 
 
 def create_markup_for_request(user_requests):

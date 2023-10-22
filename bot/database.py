@@ -9,3 +9,7 @@ def get_user(user_id):
 def get_requests_page(user_id, page=1):
     response = HttpClient.get('insurance_requests', user_id)['data']
     return response
+
+
+def get_user_roles(user_id):
+    return [data['id'] for data in get_user(user_id)['data']]

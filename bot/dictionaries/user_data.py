@@ -7,4 +7,3 @@ user_data = [
      'value': 'отчество'},
 ]
 
-USER_DATA_LENGTH = len(user_data)

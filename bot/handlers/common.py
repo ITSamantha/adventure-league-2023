@@ -2,11 +2,12 @@ import re
 from telebot import types
 
 import database
+import dictionaries.user_data
 import handlers.client
 import interface
 from converters.converter import StringConverter
 from dictionaries.help import user_helps
-from dictionaries.user_data import user_data, USER_DATA_LENGTH
+from dictionaries.user_data import user_data
 from enums.Mode import Mode
 from enums.BotMessageException import BotMessageException
 from enums.UserRole import UserRole
@@ -74,7 +75,7 @@ def handle_registration(call, bot):
             bot.send_message(user_id, welcome_message, parse_mode=interface.PARSE_MODE)
             handle_menu(call.message, bot)
 
-        initial_data_step = 0
+        initial_data_step = interface.INITIAL_VALUE
         bot.send_message(user_id, "Введите поле ___\"{value}\"___:".format(value=user_data[initial_data_step]['value']),
                          reply_markup=interface.remove_keyboard, parse_mode=interface.PARSE_MODE)
 
@@ -134,7 +135,7 @@ def handle_menu(message, bot):
     try:
         check_user_in_users(user_id)
 
-        user_roles = [data['id'] for data in database.get_user(user_id)['data']['roles']]
+        user_roles = database.get_user_roles(user_id)
 
         if UserRole.ADMIN.value in user_roles:
             markup.add("Работа с модераторами", "Просмотр заявок")
@@ -164,6 +165,7 @@ def handle_menu(message, bot):
 
 def handle_requests(message, bot, is_history=False):
     """Просмотр истории и статуса заявок."""
+
     user_id = str(message.chat.id)
 
     try:
@@ -185,13 +187,14 @@ def handle_requests(message, bot, is_history=False):
         if requests:
             status_message = message_template
             markup = interface.create_markup_for_request(requests)
+
             left = types.InlineKeyboardButton("⬅️", callback_data=f'prevpage_{"history" if is_history else "status"}')
             right = types.InlineKeyboardButton("➡️", callback_data=f'nextpage_{"history" if is_history else "status"}')
 
-            if current_page > 0 and end_index < total_pages:
+            if current_page > interface.INITIAL_VALUE and end_index < total_pages:
                 markup.row(left, right)
             else:
-                if end_index < len(requests):
+                if end_index < total_pages:
                     markup.add(right)
                 else:
                     markup.add(left)
@@ -221,13 +224,19 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
     is_digit = Validator.is_digit_in_str(data)
 
     if not is_digit:
+
         users[user_id][user_data[type_id]['type']] = StringConverter.capitalize_str_from_lower_case(data)
         bot.send_message(message.from_user.id, 'Супер, принято!')
-        if type_id == USER_DATA_LENGTH - 1:
+
+        user_data_length = len(user_data) - 1
+
+        if type_id == user_data_length:
+
             keyboard = types.InlineKeyboardMarkup()
             key_yes = types.InlineKeyboardButton(text='Верно', callback_data='registration_yes')
             key_no = types.InlineKeyboardButton(text='Исправить', callback_data='registration_no')
             keyboard.row(key_yes, key_no)
+
             user = users[user_id]
             text = f'___Проверьте, пожалуйста, правильность введенных данных___\n\nФамилия: {user["surname"]}\nИмя: {user["name"]}\nОтчество: {user["patronymic"]}'
             bot.send_message(message.from_user.id, text, reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
@@ -241,24 +250,40 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
 
 
 def handle_help(message, bot):
+    """Справка для всех ролей."""
+
     user_id = str(message.chat.id)
+
     bot.send_message(user_id, "Доступны несколько разделов справки😌", reply_markup=interface.remove_keyboard)
     keyboard = types.InlineKeyboardMarkup()
-    # Тут разделение на модератора и пользователя
-    if user_id not in users:
-        users[user_id] = {}
-    role = users[user_id]['roles'][0]['id']
-    help_list = user_helps[role]
-    for k, v in help_list.items():
-        hp = types.InlineKeyboardButton(text=v['title'], parse_mode=interface.PARSE_MODE,
-                                        callback_data=f'help_{k}')
-        keyboard.add(hp)
-    bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
+
+    try:
+        user_role = database.get_user_roles(user_id)[0]
+
+        check_user_in_users(user_id)
+
+        help_list = user_helps[user_role]
+
+        for k, v in help_list.items():
+            hp = types.InlineKeyboardButton(text=v['title'], parse_mode=interface.PARSE_MODE,
+                                            callback_data=f'help_{k}')
+            keyboard.add(hp)
+
+        bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
+
+    except ClientException as e:
+        bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
+        print(str(e))
+    except ServerException as e:
+        bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+        print(str(e))
+    except Exception as e:
+        bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+        print(str(e))
 
 
 def handle_page_inline_button_pressed(call, bot):
     user_id = str(call.message.chat.id)
-    # bot.delete_message(user_id, call.message.message_id)
     mode = call.data.split('_')[1]
     mode = True if mode == 'history' else False
     if 'prevpage' in call.data:

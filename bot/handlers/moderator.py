@@ -1,6 +1,6 @@
 import telebot
 from telebot import types
-from handlers.common import requests, handle_menu
+from handlers.common import handle_menu
 
 PAGE_SIZE = 5
 CURRENT_PAGE = 0
