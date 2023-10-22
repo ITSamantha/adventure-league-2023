@@ -19,6 +19,7 @@ use Illuminate\Support\Collection;
  * @property \Illuminate\Support\Carbon|null $updated_at
  *
  * @property-read Collection<File> $items
+ * @property-read InsuranceRequest $insuranceRequest
  *
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequestAttachment newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequestAttachment newQuery()
@@ -45,4 +46,8 @@ class InsuranceRequestAttachment extends Model
         return $this->belongsTo(InsuranceObjectFileType::class);
     }
 
+    public function insuranceRequest(): BelongsTo
+    {
+        return $this->belongsTo(InsuranceRequest::class, 'insurance_request_id', 'id');
+    }
 }

@@ -12,7 +12,7 @@ class NeuralNetService
     {
         $nnRequest = NeuralNetRequest::query()->create([
             'status_id' => NeuralNetRequestStatus::created,
-            'ira_id' => $ira->id,
+            'ir_id' => $ira->insuranceRequest->id,
         ]);
     }
 }
