@@ -23,7 +23,7 @@ class InsuranceRequestSaveRequest extends ApiRequest
     {
         return [
             'object_type_id' => 'required|integer|exists:insurance_object_types,id',
-            'comment' => 'required|string',
+            'comment' => 'nullable|string',
         ];
     }
 }

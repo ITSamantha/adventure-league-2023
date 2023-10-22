@@ -9,7 +9,7 @@ use App\Models\FileType;
 use App\Models\InsuranceObjectFileType;
 use App\Models\InsuranceRequest;
 use App\Models\InsuranceRequestAttachment;
-use App\Models\InsuranceRequestAttachmentStatus;
+use App\Models\AttachmentStatus;
 use App\Services\NeuralNetService;
 use App\Services\TelegramService;
 use App\Services\TGBotService;
@@ -43,7 +43,7 @@ class InsuranceRequestAttachmentStoreUseCase
             $ira = InsuranceRequestAttachment::query()->create([
                 'ioft_id' => $ioft->id,
                 'insurance_request_id' => $ir->id,
-                'attachment_status_id' => InsuranceRequestAttachmentStatus::PENDING,
+                'attachment_status_id' => AttachmentStatus::PENDING,
             ]);
 
             //  if has files download, validate and save
@@ -72,7 +72,7 @@ class InsuranceRequestAttachmentStoreUseCase
                     ];
                 }
 
-                $ira->attachment_status_id = InsuranceRequestAttachmentStatus::REVISION;
+                $ira->attachment_status_id = AttachmentStatus::REVISION;
 
                 $fileModels = File::createFromMany($files, [
                     'insurance_request_attachment_id' => $ira->id,

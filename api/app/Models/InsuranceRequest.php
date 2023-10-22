@@ -20,6 +20,7 @@ use Illuminate\Support\Collection;
  * @property Carbon|null $updated_at
  *
  * @property-read InsuranceRequestStatus $status
+ * @property-read User $user
  * @property-read Collection<InsuranceRequestAttachment> $attachments
  *
  * @method static \Illuminate\Database\Eloquent\Builder|InsuranceRequest newModelQuery()
@@ -38,14 +39,19 @@ class InsuranceRequest extends Model
     protected $guarded = [];
     protected $table = 'insurance_requests';
 
+    public function updateStatus(int $statusId)
+    {
+        $this->insurance_request_status_id = $statusId;
+    }
+
     public function status(): BelongsTo
     {
         return $this->belongsTo(InsuranceRequestStatus::class, 'insurance_request_status_id', 'id');
     }
 
-    public function updateStatus(int $statusId)
+    public function user(): BelongsTo
     {
-        $this->insurance_request_status_id = $statusId;
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function attachments(): HasMany

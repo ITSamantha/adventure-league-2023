@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\AttachmentStatus;
-use App\Models\InsuranceRequestAttachmentStatus;
 use App\Models\InsuranceRequestStatus;
 use App\Models\NeuralNetRequestStatus;
 
@@ -18,16 +17,12 @@ class StatusesSeeder extends GenericSeeder
             AttachmentStatus::PENDING => ['name' => 'На рассмотрении'],
         ],
         InsuranceRequestStatus::class => [
+            InsuranceRequestStatus::CREATED => ['name' => 'На заполнении'],
             InsuranceRequestStatus::APPROVED => ['name' => 'Одобрено'],
             InsuranceRequestStatus::DECLINED => ['name' => 'Отклонено'],
             InsuranceRequestStatus::REVISION => ['name' => 'Нуждается в доработке'],
-            InsuranceRequestStatus::PENDING => ['name' => 'На рассмотрении'],
-        ],
-        InsuranceRequestAttachmentStatus::class => [
-            InsuranceRequestAttachmentStatus::APPROVED => ['name' => 'Одобрено'],
-            InsuranceRequestAttachmentStatus::DECLINED => ['name' => 'Отклонено'],
-            InsuranceRequestAttachmentStatus::REVISION => ['name' => 'Нуждается в доработке'],
-            InsuranceRequestAttachmentStatus::PENDING => ['name' => 'На рассмотрении'],
+            InsuranceRequestStatus::PENDING_BOT => ['name' => 'Валидация'],
+            InsuranceRequestStatus::PENDING_MANAGER => ['name' => 'На рассмотрении'],
         ],
         NeuralNetRequestStatus::class => [
             NeuralNetRequestStatus::created => ['name' => 'Запрос создан'],
