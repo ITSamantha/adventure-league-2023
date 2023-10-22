@@ -21,8 +21,7 @@ class TelegramService
             $extension = explode('.', $origFileName[count($origFileName) - 1])[1];
 
             $path = Str::random(40) . '.' . $extension;
-            //todo
-            $link = 'C:\Users\tyumi\Desktop\cat.jpg';
+
             copy($link, Storage::disk('images')->path($path));
 
             $paths[] = $path;
