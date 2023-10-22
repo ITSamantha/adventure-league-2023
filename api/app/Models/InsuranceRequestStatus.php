@@ -25,10 +25,12 @@ class InsuranceRequestStatus extends Model
 
     public const APPROVED = 1;
     public const DECLINED = 2;
-    public const REVISION = 4;
-    public const PENDING = 5;
+    public const REVISION = 3;
+    public const PENDING_BOT = 4;
+    public const PENDING_MANAGER = 5;
+    public const CREATED = 6;
 
-    public const default = self::PENDING;
+    public const default = self::PENDING_BOT;
 
     protected $table = 'insurance_request_statuses';
 
