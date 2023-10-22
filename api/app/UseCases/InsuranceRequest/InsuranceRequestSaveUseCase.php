@@ -15,7 +15,7 @@ class InsuranceRequestSaveUseCase
         $user = $request->getRequestUser();
 
         $insuranceRequest->user_id = $user->id;
-        $insuranceRequest->insurance_request_status_id = InsuranceRequestStatus::PENDING;
+        $insuranceRequest->insurance_request_status_id = InsuranceRequestStatus::CREATED;
         $insuranceRequest->insurance_object_type_id = $request->input('object_type_id');
         $insuranceRequest->comment = $request->input('comment');
 
