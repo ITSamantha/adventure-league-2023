@@ -2,6 +2,7 @@
 
 namespace App\UseCases\InsuranceRequestAttachment;
 
+use App\Exceptions\ImageExceptions\DimensionsException;
 use App\Http\Requests\InsuranceRequestAttachment\InsuranceRequestAttachmentStoreRequest;
 use App\Models\File;
 use App\Models\FileType;
@@ -17,6 +18,9 @@ use Illuminate\Support\Facades\Storage;
 
 class InsuranceRequestAttachmentStoreUseCase
 {
+    const MIN_IMAGE_WIDTH = 1600;
+    const MIN_IMAGE_HEIGHT = 1200;
+
     protected TelegramService $telegramService;
 
     public function __construct(TelegramService $telegramService)
@@ -55,28 +59,27 @@ class InsuranceRequestAttachmentStoreUseCase
 
                 $files = $this->telegramService->getFiles($links);
 
-                $errors = $this->validateFiles($files, $fileTypeId);
-
-                if (count($errors) === 0) {
-                    $ira->attachment_status_id = InsuranceRequestAttachmentStatus::REVISION;
-
-                    $fileModels = File::createFromMany($files, [
-                        'insurance_request_attachment_id' => $ira->id,
-                        'file_type_id' => $fileTypeId,
-                    ]);
-
-                    $ira->items()->saveMany($fileModels);
-                } else {
+                try {
+                    $this->validateFiles($files, $fileTypeId);
+                } catch (DimensionsException $e) {
                     foreach ($files as $file) {
                         unlink(Storage::disk('images')->path($file)); // todo with other files
                     }
 
                     return [
                         'success' => false,
-                        'message' => 'Файлы не соответствуют требованиям',
-                        'errors' => $errors,
+                        'message' => 'Разрешение фото должно быть не менее ' . self::MIN_IMAGE_WIDTH . 'x' . self::MIN_IMAGE_HEIGHT,
                     ];
                 }
+
+                $ira->attachment_status_id = InsuranceRequestAttachmentStatus::REVISION;
+
+                $fileModels = File::createFromMany($files, [
+                    'insurance_request_attachment_id' => $ira->id,
+                    'file_type_id' => $fileTypeId,
+                ]);
+
+                $ira->items()->saveMany($fileModels);
             } else {
                 $ira->text = $request->input('text');
             }
@@ -94,6 +97,8 @@ class InsuranceRequestAttachmentStoreUseCase
         }
 
         if ($request->input('is_last')) {
+            //validate via imageservice todo geo time
+
             // send to nn validation
             if ($fileTypeId === FileType::PHOTO) {
                 NeuralNetService::sendToValidation($result['data']);
@@ -105,6 +110,14 @@ class InsuranceRequestAttachmentStoreUseCase
         return $result;
     }
 
+    /**
+     * @param array $files
+     * @param int $fileTypeId
+     *
+     * @return array
+     *
+     * @throws DimensionsException
+     */
     protected function validateFiles(array $files, int $fileTypeId): array
     {
         $errors = [];
@@ -113,11 +126,11 @@ class InsuranceRequestAttachmentStoreUseCase
             case FileType::PHOTO:
                 foreach ($files as $path) {
                     [$width, $height] = getimagesize(Storage::disk('images')->path($path));
-                    // todo exif stuff
-                    // todo if width < config width ...
-                    if (false) {
-                        $errors[] = 'ploho...';
+
+                    if ($width < self::MIN_IMAGE_WIDTH || $height < self::MIN_IMAGE_HEIGHT) {
+                        throw new DimensionsException();
                     }
+                    //todo exif
                 }
                 break;
             case FileType::VIDEO:

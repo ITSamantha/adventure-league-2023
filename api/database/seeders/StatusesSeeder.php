@@ -30,7 +30,9 @@ class StatusesSeeder extends GenericSeeder
             InsuranceRequestAttachmentStatus::PENDING => ['name' => 'На рассмотрении'],
         ],
         NeuralNetRequestStatus::class => [
-
+            NeuralNetRequestStatus::created => ['name' => 'Запрос создан'],
+            NeuralNetRequestStatus::pending => ['name' => 'Запрос в обработке'],
+            NeuralNetRequestStatus::finished => ['name' => 'Запрос выполнен'],
         ],
     ];
 }
