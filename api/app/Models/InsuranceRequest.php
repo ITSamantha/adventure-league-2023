@@ -52,4 +52,17 @@ class InsuranceRequest extends Model
     {
         return $this->hasMany(InsuranceRequestAttachment::class, 'insurance_request_id', 'id');
     }
+
+    public function notEditableAttachments(): HasMany
+    {
+        return $this->attachments()->with('ioft')->whereHas('ioft', function ($query) {
+            $query->where('is_editable', false);
+        });
+    }
+
+    public function notEditableAttachmentsWithFiles() : HasMany
+    {
+        return $this->notEditableAttachments()->with('items');
+    }
+
 }

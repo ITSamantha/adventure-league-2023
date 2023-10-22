@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
@@ -38,4 +39,10 @@ class InsuranceRequestAttachment extends Model
     {
         return $this->hasMany(File::class, 'insurance_request_attachment_id', 'id');
     }
+
+    public function ioft(): BelongsTo
+    {
+        return $this->belongsTo(InsuranceObjectFileType::class);
+    }
+
 }
