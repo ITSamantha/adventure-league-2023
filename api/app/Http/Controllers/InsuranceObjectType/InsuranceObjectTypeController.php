@@ -15,7 +15,7 @@ class InsuranceObjectTypeController
     public function index(ApiRequest $request): JsonResponse
     {
         /** @var Collection<InsuranceObjectType> $types */
-        $types = InsuranceObjectType::query()->all();
+        $types = InsuranceObjectType::query()->get();
 
         return ApiResponse::success(
             Transformer::transform($types, InsuranceObjectTypeTransformer::class)
