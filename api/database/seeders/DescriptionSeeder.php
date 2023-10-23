@@ -105,59 +105,123 @@ class DescriptionSeeder extends Seeder
             'is_editable' => true,
         ],
 
-        15 => [
+        49 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::COUNTRY_HOUSE,
+            'text' => 'Комментарий',
+            'min_count' => 0
+        ],
+
+
+        50 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Марка, модель',
+            'min_count' => 0
+        ],
+        51 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Год выпуска',
+            'min_count' => 0
+        ],
+        52 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Собственник (ФИО)',
+            'min_count' => 0
+        ],
+        53 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'VIN или кузов/шасси №',
+            'min_count' => 0
+        ],
+        54 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Государственный регистрационный знак',
+            'min_count' => 0
+        ],
+        55 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Пробег',
+            'min_count' => 0
+        ],
+        56 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Диски (литые / штампованный / кованые)',
+            'min_count' => 0
+        ],
+        57 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Покрышки (зимние, летние, всесезонные)',
+            'min_count' => 0
+        ],
+
+
+        91 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото VIN-номера на металле – минимум 1 фото',
             'min_count' => 1
         ],
-        16 => [
+        92 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото транспортного средства снаружи – минимум 8 фото: с 4-х сторон + с 4-х углов (допускается больше при необходимости)',
             'min_count' => 8
         ],
-        17 => [
+        93 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото лобового стекла – минимум 1 фото',
             'min_count' => 1
         ],
-        18 => [
+        94 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото маркировки лобового стекла – 1 фото',
             'min_count' => 1
         ],
-        19 => [
+        95 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото колеса в сборе – минимум 1 фото (должны читаться размер и производитель шины);',
             'min_count' => 1
         ],
-        20 => [
+        96 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото показаний одометра (пробег) – 1 фото',
             'min_count' => 1
         ],
-        21 => [
+        97 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото салона – минимум 2 фото: передняя часть салона с приборной панелью + задняя часть салона',
             'min_count' => 2
         ],
-        22 => [
+        98 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото всех повреждений (при наличии) – неограниченное количество фото',
             'min_count' => 0
         ],
-        23 => [
+        99 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::CAR,
             'text' => 'фото штатных ключей + ключей/брелоков/меток от дополнительных противоугонных устройств.',
             'min_count' => 1
+        ],
+        100 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::CAR,
+            'text' => 'Комментарий',
+            'min_count' => 0
         ],
     ];
 
