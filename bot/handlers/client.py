@@ -24,7 +24,8 @@ def callback_client_load_request(call, bot):
     current_req = requests[int(call.data.split('_')[1])]
     user_id = str(call.message.chat.id)
     try:
-        """user = HttpClient.get('get_user', user_id)
+        """
+        user = HttpClient.get('get_user', user_id)
         message = f"        ___Заявка №{current_req['id']}___\n\n" \
                   f"___Статус___:       Одобрена{RequestStatus.OK.value}\n" \
                   f"___Владелец___:     {user['data']['name']}\n" \
@@ -42,7 +43,6 @@ def callback_client_load_request(call, bot):
             keyboard.add(key_2)
             keyboard.add(key_3)
             bot.send_message(call.message.chat.id, 'Необходимо выбрать статус заявки:', reply_markup=keyboard)"""
-        pass
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
         print(str(e))
@@ -80,7 +80,6 @@ def handle_insured_objects(call, bot):
         bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
         print(str(e))
     handle_request_information(call.message, bot)
-
 
 
 def handle_approve_request(message, bot):
