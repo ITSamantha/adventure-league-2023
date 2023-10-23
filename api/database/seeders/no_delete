@@ -1,0 +1,7 @@
+api/Dockerfile
+api/composer.lock
+api/nginx/conf.d/laravel.conf
+docker-compose.yml
+neural_network/app/.env
+neural_network/app/__init__.py
+neural_network/app/views.py
