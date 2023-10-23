@@ -133,13 +133,13 @@ class SendRequestToNeuralNetwork extends Command
             InsuranceRequestAttachment::query()
                 ->whereIn('id', $processedIras)
                 ->update([
-                    'status_id' => AttachmentStatus::REVISION_BY_MANAGER,
+                    'attachment_status_id' => AttachmentStatus::REVISION_BY_MANAGER,
                 ]);
 
             InsuranceRequestAttachment::query()
                 ->whereIn('id', $failedIras)
                 ->update([
-                    'status_id' => AttachmentStatus::DECLINED,
+                    'attachment_status_id' => AttachmentStatus::DECLINED,
                 ]);
 
             foreach($data['images'] as $imageId => $value) {
