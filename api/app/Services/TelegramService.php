@@ -24,7 +24,7 @@ class TelegramService
 
             copy($link, Storage::disk('images')->path($path));
 
-            $paths[] = $path;
+            $paths[] = Storage::disk('images')->path($path);
         }
 
         return $paths;
