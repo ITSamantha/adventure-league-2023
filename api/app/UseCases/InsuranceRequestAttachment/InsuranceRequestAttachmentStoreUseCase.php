@@ -158,12 +158,12 @@ class InsuranceRequestAttachmentStoreUseCase
         switch ($fileTypeId) {
             case FileType::PHOTO:
                 foreach ($files as $path) {
-                    $storagePath = Storage::disk('images')->path($path);
-                    [$width, $height] = getimagesize($storagePath);
+//                    $storagePath = Storage::disk('images')->path($path);
+                    [$width, $height] = getimagesize($path);
                     if ($width < self::MIN_IMAGE_WIDTH || $height < self::MIN_IMAGE_HEIGHT) {
                         throw new DimensionsException();
                     }
-                    return $storagePath;
+                    return $path;
                 }
                 break;
             case FileType::VIDEO:
