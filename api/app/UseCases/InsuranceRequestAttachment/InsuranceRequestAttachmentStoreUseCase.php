@@ -145,10 +145,9 @@ class InsuranceRequestAttachmentStoreUseCase
      * @param array $files
      * @param int $fileTypeId
      *
-     * @return array
+     * @return string
      *
      * @throws DimensionsException
-     * @throws ImageException
      */
     protected function validateFiles(array $files, int $fileTypeId): string
     {
@@ -173,6 +172,6 @@ class InsuranceRequestAttachmentStoreUseCase
                 break;
         }
 
-        return $errors;
+        return '';
     }
 }
