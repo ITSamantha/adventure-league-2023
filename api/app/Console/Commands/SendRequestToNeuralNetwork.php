@@ -127,6 +127,7 @@ class SendRequestToNeuralNetwork extends Command
         $this->log('posted to webhook');
 
         DB::transaction(function () use ($firstRequestInQueue, $processedIras, $failedIras, $data) {
+            $firstRequestInQueue->status_id = NeuralNetRequestStatus::finished;
             $firstRequestInQueue->save();
             $firstRequestInQueue->insuranceRequest->save();
 
