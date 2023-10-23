@@ -69,7 +69,7 @@ class InsuranceRequestAttachmentStoreUseCase
                     foreach ($files as $file) {
                         $md = $this->imageService->getMediaMetaData($file);
 
-                        $fileModels = File::createFromMany($files, [
+                        $fileModel = File::createFrom($file, [
                             'insurance_request_attachment_id' => $ira->id,
                             'file_type_id' => $fileTypeId,
                         ], $md);

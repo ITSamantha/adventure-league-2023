@@ -63,12 +63,12 @@ class File extends Model
     }
 
     /**
-     * @param $files
+     * @param $file
      * @param $data
-     *
+     * @param ImageMetaData $metaData
      * @return Collection<File>
      */
-    public static function createFromMany($files, $data, ImageMetaData $metaData): Collection
+    public static function createFrom($file, $data, ImageMetaData $metaData): Collection
     {
         $createdFiles = collect();
 
@@ -78,16 +78,14 @@ class File extends Model
            'address' => '-',
         ]);
 
-        foreach ($files as $path) {
-            $newFile = self::query()->create($data + [
-                'original_path' => $path,
-                'edited_path' => null,
-                'taken_at' => $metaData->taken_at,
-                'geolocation_id' => $geolocation->id,
-            ]);
+        $newFile = self::query()->create($data + [
+            'original_path' => $file,
+            'edited_path' => null,
+            'taken_at' => $metaData->taken_at,
+            'geolocation_id' => $geolocation->id,
+        ]);
 
-            $createdFiles->add($newFile);
-        }
+        $createdFiles->add($newFile);
 
         return $createdFiles;
     }
