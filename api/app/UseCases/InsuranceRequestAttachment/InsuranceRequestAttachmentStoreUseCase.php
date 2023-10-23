@@ -65,17 +65,20 @@ class InsuranceRequestAttachmentStoreUseCase
                 $files = $this->telegramService->getFiles($links);
 
                 try {
-                    $storagePath = $this->validateFiles($files, $fileTypeId);
-                    $md = $this->imageService->getMediaMetaData($storagePath);
+                    $this->validateFiles($files, $fileTypeId);
+                    foreach ($files as $file) {
+                        $md = $this->imageService->getMediaMetaData($file);
+
+                        $fileModels = File::createFromMany($files, [
+                            'insurance_request_attachment_id' => $ira->id,
+                            'file_type_id' => $fileTypeId,
+                        ], $md);
+                    }
+
 
                     $ira->attachment_status_id = AttachmentStatus::REVISION_BY_BOT;
 
-                    $fileModels = File::createFromMany($files, [
-                        'insurance_request_attachment_id' => $ira->id,
-                        'file_type_id' => $fileTypeId,
-                    ], $md);
-
-                    $ira->items()->saveMany($fileModels);
+//                    $ira->items()->saveMany($fileModels);
 
                 } catch (DimensionsException $e) {
                     foreach ($files as $file) {
@@ -158,12 +161,10 @@ class InsuranceRequestAttachmentStoreUseCase
         switch ($fileTypeId) {
             case FileType::PHOTO:
                 foreach ($files as $path) {
-//                    $storagePath = Storage::disk('images')->path($path);
                     [$width, $height] = getimagesize($path);
                     if ($width < self::MIN_IMAGE_WIDTH || $height < self::MIN_IMAGE_HEIGHT) {
                         throw new DimensionsException();
                     }
-                    return $path;
                 }
                 break;
             case FileType::VIDEO:
