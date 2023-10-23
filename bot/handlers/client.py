@@ -108,7 +108,7 @@ def handle_request_information(message, bot):
         global iofts
         iofts = HttpClient.post('insurance_object_file_types/get', user_id, json=json)['data']
         markup = types.ReplyKeyboardMarkup(True, True)
-        markup.add("Попробовать", "Не требуется")
+        markup.add("Перейти к проверке камеры", "Перейти к осмотру")
         bot.send_message(user_id, '\nВАЖНО. Фото для осмотра должны быть сделаны только с помощью телефона. '
                                   'Для корректной обработки фото Вам необходимо предоставить доступ к геолокации в приложении "Камера". Это можно сделать в разделе "Настройки" камеры.'
                                   '("Камера" -> "Настройки" -> "Сохранять место съемки"). \n\n'
@@ -221,15 +221,14 @@ def handle_photos_request(message, bot):
 def add_file(message, bot):
     print(message)
     user_id = str(message.chat.id)
-
-    bot.send_message(user_id, 'Фото отправлено. Ожидайте окончания обработки😌', reply_markup=interface.remove_keyboard)
-
+    # bot.send_message(user_id, 'Фото отправлено. Ожидайте окончания обработки😌', reply_markup=interface.remove_keyboard)
     if user_id in user_photo_upload_stage:
         if user_photo_upload_stage[user_id] == 'test':
             user_photo_upload_stage[user_id] = 'pending'
             print('got file')  # only once because of statuses
             # todo send to backend
             # todo ask Diana
+            insurance_types = HttpClient.get('insurance_objects', user_id)['data']
 
     file_name = message.document.file_name
     file_info = bot.get_file(message.document.file_id)
@@ -264,9 +263,9 @@ def register_handlers_client(bot):
                                  func=lambda message: False, pass_bot=True)"""
     bot.register_message_handler(add_file, content_types=['document'],
                                  pass_bot=True)
-    bot.register_message_handler(handle_test_photo_request, func=lambda message: message.text == "Попробовать",
+    bot.register_message_handler(handle_test_photo_request, func=lambda message: message.text == "Перейти к проверке камеры",
                                  pass_bot=True)
-    bot.register_message_handler(handle_photos_request, func=lambda message: message.text == "Не требуется",
+    bot.register_message_handler(handle_photos_request, func=lambda message: message.text == "Перейти к осмотру",
                                  pass_bot=True)
     bot.register_message_handler(handle_techical_help, func=lambda message: message.text == "Техническая поддержка",
                                  pass_bot=True)
