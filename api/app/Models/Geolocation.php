@@ -19,7 +19,7 @@ class Geolocation extends Model
 {
     use HasFactory;
     protected $guarded = [];
-    protected $table = 'geolocation';
+    protected $table = 'geolocations';
 
     public function file() : HasOne
     {
