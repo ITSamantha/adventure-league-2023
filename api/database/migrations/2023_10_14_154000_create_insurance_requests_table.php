@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('insurance_request_status_id')->constrained();
             $table->foreignId('insurance_object_type_id')->constrained();
-            $table->text('comment');
+            $table->text('comment')->nullable();
             $table->timestamps();
         });
     }

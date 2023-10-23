@@ -3,6 +3,8 @@
 namespace App\UseCases\InsuranceRequestAttachment;
 
 use App\Exceptions\ImageExceptions\DimensionsException;
+use App\Exceptions\ImageExceptions\EXIFException;
+use App\Exceptions\ImageExceptions\ImageException;
 use App\Http\Requests\InsuranceRequestAttachment\InsuranceRequestAttachmentStoreRequest;
 use App\Models\File;
 use App\Models\FileType;
@@ -10,6 +12,7 @@ use App\Models\InsuranceObjectFileType;
 use App\Models\InsuranceRequest;
 use App\Models\InsuranceRequestAttachment;
 use App\Models\AttachmentStatus;
+use App\Services\ImageService;
 use App\Services\NeuralNetService;
 use App\Services\TelegramService;
 use App\Services\TGBotService;
@@ -22,10 +25,12 @@ class InsuranceRequestAttachmentStoreUseCase
     const MIN_IMAGE_HEIGHT = 1200;
 
     protected TelegramService $telegramService;
+    protected ImageService $imageService;
 
-    public function __construct(TelegramService $telegramService)
+    public function __construct(TelegramService $telegramService, ImageService $imageService)
     {
         $this->telegramService = $telegramService;
+        $this->imageService = $imageService;
     }
 
     public function __invoke(InsuranceRequestAttachmentStoreRequest $request)
@@ -63,12 +68,27 @@ class InsuranceRequestAttachmentStoreUseCase
                     $this->validateFiles($files, $fileTypeId);
                 } catch (DimensionsException $e) {
                     foreach ($files as $file) {
-                        unlink(Storage::disk('images')->path($file)); // todo with other files
+                        unlink(Storage::disk('images')->path($file));
                     }
-
                     return [
                         'success' => false,
                         'message' => 'Разрешение фото должно быть не менее ' . self::MIN_IMAGE_WIDTH . 'x' . self::MIN_IMAGE_HEIGHT,
+                    ];
+                } catch (EXIFException $exception) {
+                    foreach ($files as $file) {
+                        unlink(Storage::disk('images')->path($file));
+                    }
+                    return [
+                        'success' => false,
+                        'message' => $exception->getMessage(),
+                    ];
+                } catch (ImageException) {
+                    foreach ($files as $file) {
+                        unlink(Storage::disk('images')->path($file));
+                    }
+                    return [
+                        'success' => false,
+                        'message' => 'Ошибки при загрузке изображения. Убедитесь, что вы загрузили изображение допустимого формата (.png, .jpg, .webp)',
                     ];
                 }
 
@@ -117,6 +137,7 @@ class InsuranceRequestAttachmentStoreUseCase
      * @return array
      *
      * @throws DimensionsException
+     * @throws ImageException
      */
     protected function validateFiles(array $files, int $fileTypeId): array
     {
@@ -125,12 +146,12 @@ class InsuranceRequestAttachmentStoreUseCase
         switch ($fileTypeId) {
             case FileType::PHOTO:
                 foreach ($files as $path) {
-                    [$width, $height] = getimagesize(Storage::disk('images')->path($path));
-
+                    $storagePath = Storage::disk('images')->path($path);
+                    [$width, $height] = getimagesize($storagePath);
                     if ($width < self::MIN_IMAGE_WIDTH || $height < self::MIN_IMAGE_HEIGHT) {
                         throw new DimensionsException();
                     }
-                    //todo exif
+                    $this->imageService->getMediaMetaData($storagePath);
                 }
                 break;
             case FileType::VIDEO:

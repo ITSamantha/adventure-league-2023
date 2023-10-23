@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ImageExceptions\EXIFException;
+use App\Exceptions\ImageExceptions\ImageException;
 use App\Services\ImageService;
 use App\Services\TelegramService;
 use Exception;
@@ -15,14 +17,16 @@ class ClientImageController extends Controller
     {
         $link = $request->link;
         if (!$link) {
-            return response()->json([], 422);
+            return response()->json(['success' => false, 'message' => 'Не можем обработать этот файл. Попробуйте, пожалуйста, другой формат.']);
         }
         $photos = $telegramService->getFiles([$link]);
         try {
             $imageService->getMediaMetaData($photos[0]);
             return response()->json(['success' => true]);
-        } catch (Exception) {
-            return response()->json([], 422);
+        } catch (EXIFException $exception) {
+            return response()->json(['success' => false, 'message' => $exception->getMessage()]);
+        } catch (ImageException) {
+            return response()->json(['success' => false, 'message' => 'Не можем обработать этот файл. Попробуйте, пожалуйста, другой формат.']);
         }
     }
 
