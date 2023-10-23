@@ -17,13 +17,13 @@ class InsuranceRequestAttachmentController
     ): JsonResponse
     {
         $data = $case($request);
+        return response()->json($data);
+//        if (!$data['success']) {
+//            return Apiresponse::unprocessable($data['message'], $data['errors'] ?? []);
+//        }
 
-        if (!$data['success']) {
-            return Apiresponse::unprocessable($data['message'], $data['errors'] ?? []);
-        }
-
-        return ApiResponse::success(
-            Transformer::transform($data['data'], InsuranceRequestAttachmentTransformer::class)
-        );
+//        return ApiResponse::success(
+//            Transformer::transform($data['data'], InsuranceRequestAttachmentTransformer::class)
+//        );
     }
 }
