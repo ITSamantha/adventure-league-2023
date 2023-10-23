@@ -88,7 +88,8 @@ class SendRequestToNeuralNetwork extends Command
 
             /** @var File $image */
             foreach ($ira->items as $image) {
-                $nextImages[$image->id] = base64_encode(Storage::disk('images')->get($image->original_path));
+//                $nextImages[$image->id] = base64_encode(Storage::disk('images')->get($image->original_path));
+                $nextImages[$image->id] = base64_encode(file_get_contents($image->original_path));
             }
 
             $dataToSend[$ira->id] = $nextImages;
