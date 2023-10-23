@@ -8,6 +8,7 @@ import interface
 from converters.converter import StringConverter
 from enums.BotMessageException import BotMessageException
 from dictionaries.request_statuses import request_statuses
+from enums.FileType import FileType
 from enums.UserRole import UserRole
 from exceptions.ClientException import ClientException
 from exceptions.ServerException import ServerException
@@ -15,10 +16,11 @@ from exceptions.ServerException import ServerException
 from http_client.http_client import HttpClient
 
 remove_keyboard = types.ReplyKeyboardRemove(selective=False)
-iofts = []
+iofts = {}
 user_photo_upload_stage = {
 
 }
+user_file_data = {}
 
 
 def callback_client_load_request(call, bot):
@@ -107,7 +109,7 @@ def handle_request_information(message, bot):
             'insurance_object_id': handlers.common.users[str(user_id)]['current_request']['insured_object_type_id']
         }
         global iofts
-        iofts = HttpClient.post('insurance_object_file_types/get', user_id, json=json)['data']
+        iofts[user_id] = HttpClient.post('insurance_object_file_types/get', user_id, json=json)['data']
         markup = types.ReplyKeyboardMarkup(True, True)
         markup.add("Перейти к проверке камеры", "Перейти к осмотру")
         bot.send_message(user_id, '\nВАЖНО. Фото для осмотра должны быть сделаны только с помощью телефона. '
@@ -216,7 +218,21 @@ def handle_test_photo_request(message, bot):
 
 
 def handle_photos_request(message, bot):
-    pass
+    handle_display_iofts(message, bot)
+
+
+def handle_display_iofts(message, bot):
+    user_id = str(message.chat.id)
+    markup = types.ReplyKeyboardMarkup(True, True)
+    markup.add("Перейти к загрузке фото к заявке")
+    bot.send_message(message.chat.id, "Список необходимой информации:")
+    for ioft in iofts[user_id]:
+        bot.send_message(message.chat.id, ioft['file_description'])
+
+    user_photo_upload_stage[user_id] = 'asked_upload'
+    bot.send_message(message.chat.id,
+                     "Выше список всей необходимой информации. Ознакомьтесь, пожалуйста, какую именно информацию вам необходимо предоставить в бот.",
+                     reply_markup=markup)
 
 
 def add_file(message, bot):
@@ -227,14 +243,24 @@ def add_file(message, bot):
         if user_photo_upload_stage[user_id] == 'test':
             user_photo_upload_stage[user_id] = 'pending'
             try:
-                file_name = message.document.file_name
                 file_info = bot.get_file(message.document.file_id)
                 payload = {
-                    'link': 'https://api.telegram.org/file/bot' + os.getenv('TELEGRAM_BOT_TOKEN') + file_info.file_path
+                    'link': 'https://api.telegram.org/file/bot' + os.getenv(
+                        'TELEGRAM_BOT_TOKEN') + '/' + file_info.file_path
                 }
                 response = HttpClient.post('test-image', user_id, json=payload)
+                if response['success']:
+                    bot.send_message(user_id, "Отлично! Изображение нужного разрешения и содержит всю необходимую "
+                                              "мета-информацию! Заметьте, что все фотографии должны быть хорошего "
+                                              "качества, не содержать шумов и размытий.")
+                    handle_display_iofts(message, bot)
+                else:
+                    bot.send_message(user_id, response['message'])
+                    bot.send_message(user_id, 'Попробуйте ещё раз с другим фото.')
+                    user_photo_upload_stage[user_id] = 'test'
             except ClientException as e:
-                bot.send_message(user_id, "К сожалению, изображение")
+                bot.send_message(user_id, "К сожалению, изображение не может быть обработано. Попробуйте другое.")
+                user_photo_upload_stage[user_id] = 'test'
                 print(str(e))
             except ServerException as e:
                 bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
@@ -242,12 +268,25 @@ def add_file(message, bot):
             except Exception as e:
                 bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
                 print(str(e))
-            print('got file')  # only once because of statuses
-            # todo send to backend
-            # todo ask Diana
-            insurance_types = HttpClient.get('insurance_objects', user_id)['data']
+
+        if 'uploading' in user_photo_upload_stage[user_id]:
+            current_ioft = int(user_photo_upload_stage[user_id].split('_')[1])
+            file_info = bot.get_file(message.document.file_id)
+            user_file_data[user_id][iofts[user_id][current_ioft]['id']].append(file_info.file_path)
 
 
+
+def add_text(message, bot):
+    user_id = str(message.chat.id)
+    if user_id in user_photo_upload_stage:
+        if 'uploading' in user_photo_upload_stage[user_id]:
+            current_ioft = int(user_photo_upload_stage[user_id].split('_')[1])
+            print(message.text)
+            user_file_data[user_id][iofts[user_id][current_ioft]['id']] = message.text
+            handle_upload_fill_ira(message, bot)
+            return
+
+    bot.send_message(message.chat.id, "Я не знаю данной команды😢\nПопробуйте другую...")
 
 
 def handle_techical_help(message, bot):
@@ -262,6 +301,43 @@ def handle_techical_help(message, bot):
                      parse_mode=interface.PARSE_MODE)
 
     handlers.common.handle_menu(message, bot)
+
+
+def handle_start_upload(message, bot):
+    user_id = str(message.chat.id)
+    markup1 = types.ReplyKeyboardMarkup(True, True)
+    markup1.add('Все файлы по данной категории загружены')
+
+    if user_id in user_photo_upload_stage:
+        if user_photo_upload_stage[user_id] == 'asked_upload':
+            user_file_data[user_id] = {}
+            for i in iofts[user_id]:
+                if int(i['file_type_id']) == FileType.TEXT.value:
+                    user_file_data[user_id][i['id']] = ''
+                else:
+                    user_file_data[user_id][i['id']] = []
+            current_ioft = -1
+            user_photo_upload_stage[user_id] = 'uploading_' + str(current_ioft)
+
+    current_ioft = int(user_photo_upload_stage[user_id].split('_')[1]) + 1
+    if current_ioft >= len(iofts[user_id]):
+        print('done')
+        return
+
+    user_photo_upload_stage[user_id] = 'uploading_' + str(current_ioft)
+    if int(iofts[user_id][current_ioft]['file_type_id']) == int(FileType.TEXT.value):
+        bot.send_message(user_id, "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
+                         iofts[user_id][current_ioft]['file_description'])
+    else:
+        bot.send_message(user_id, "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
+                         iofts[user_id][current_ioft]['file_description'], reply_markup=markup1)
+
+
+def handle_upload_fill_ira(message, bot):
+    user_id = str(message.chat.id)
+    # current_ioft = int(user_photo_upload_stage[user_id].split('_')[1])
+    handle_start_upload(message, bot)
+    print(user_file_data[user_id])
 
 
 def register_handlers_client(bot):
@@ -279,7 +355,15 @@ def register_handlers_client(bot):
                                  func=lambda message: False, pass_bot=True)"""
     bot.register_message_handler(add_file, content_types=['document'],
                                  pass_bot=True)
-    bot.register_message_handler(handle_test_photo_request, func=lambda message: message.text == "Перейти к проверке камеры",
+
+    bot.register_message_handler(handle_test_photo_request,
+                                 func=lambda message: message.text == "Перейти к проверке камеры",
+                                 pass_bot=True)
+    bot.register_message_handler(handle_start_upload,
+                                 func=lambda message: message.text == "Перейти к загрузке фото к заявке",
+                                 pass_bot=True)
+    bot.register_message_handler(handle_upload_fill_ira,
+                                 func=lambda message: message.text == "Все файлы по данной категории загружены",
                                  pass_bot=True)
     bot.register_message_handler(handle_photos_request, func=lambda message: message.text == "Перейти к осмотру",
                                  pass_bot=True)

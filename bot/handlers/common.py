@@ -316,9 +316,6 @@ def handle_help_button_pressed(call, bot):
     pass
 
 
-def command_default(message, bot):
-    bot.send_message(message.chat.id, "Я не знаю данной команды😢\nПопробуйте другую...")
-
 
 def register_handlers_common(bot):
     bot.register_message_handler(handle_start, commands=['start'], pass_bot=True)
@@ -327,7 +324,7 @@ def register_handlers_common(bot):
     bot.register_message_handler(handle_menu, commands=['menu'], pass_bot=True)
     """bot.register_message_handler(add_file, content_types=['document', 'photo', 'audio', 'video', 'voice'],
                                  pass_bot=True)"""
-    bot.register_message_handler(command_default, content_types=['text'], pass_bot=True)
+    # bot.register_message_handler(command_default, content_types=['text'], pass_bot=True)
     bot.register_callback_query_handler(handle_help_button_pressed,
                                         func=lambda call: re.search(r'^help', call.data), pass_bot=True)
     bot.register_callback_query_handler(handle_page_inline_button_pressed,
