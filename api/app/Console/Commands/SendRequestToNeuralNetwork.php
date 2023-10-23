@@ -88,7 +88,6 @@ class SendRequestToNeuralNetwork extends Command
 
             /** @var File $image */
             foreach ($ira->items as $image) {
-//                $nextImages[$image->id] = base64_encode(Storage::disk('images')->get($image->original_path));
                 $nextImages[$image->id] = base64_encode(file_get_contents($image->original_path));
             }
 
@@ -122,7 +121,7 @@ class SendRequestToNeuralNetwork extends Command
         $this->log('statuses changed');
 
         /** Notify client that status of one of his irequests has changed */
-        Http::post(env('webhooks_app_url') . '/status_changed', [
+        Http::post(env('WEBHOOKS_APP_URL') . '/status_changed', [
             'telegram_id' => $firstRequestInQueue->insuranceRequest->user->telegram_id
         ]);
         $this->log('posted to webhook');
