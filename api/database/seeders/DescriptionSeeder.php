@@ -14,78 +14,103 @@ class DescriptionSeeder extends Seeder
 
     protected array $data = [
         1 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::COUNTRY_HOUSE,
+            'text' => 'Адрес дома',
+            'min_count' => 0
+        ],
+        2 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::COUNTRY_HOUSE,
+            'text' => 'Год постройки',
+            'min_count' => 0
+        ],
+        3 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::COUNTRY_HOUSE,
+            'text' => 'Материал стен',
+            'min_count' => 0
+        ],
+        4 => [
+            'filetype' => FileType::TEXT,
+            'type' => InsuranceObjectType::COUNTRY_HOUSE,
+            'text' => 'Площадь',
+            'min_count' => 0
+        ],
+
+        35 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'общий вид участка: несколько ракурсов участка для определения расстояний между объектами страхования, ограждением (забором), соседними сооружениями/зданиями, подъездными дорогами, объектами повышенного риска (стройка, водоемы и т.п.);',
             'min_count' => 1
         ],
-        2 => [
+        36 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'наружные инженерные коммуникации и сооружения: электроснабжения, водоснабжения, водоотведения, теплоснабжения, такие как: септик, эл.станция, трансформатор, распределительный щит, скважина, колодец, насос и т.п.;',
             'min_count' => 0
         ],
-        3 => [
+        37 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'фасады строений: каждое строение с 4-х сторон, элементы внешней отделки фасадов, кровлю, фундамент;',
             'min_count' => 0
         ],
-        4 => [
+        38 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'механическую защиту окон и дверей: наружние жалюзи, решетки и т.п. крупным планом, окна снаружи при отсутствии защиты;',
             'min_count' => 1
         ],
-        5 => [
+        39 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'входные (наружные) двери: с внешней стороны крупным планом;',
             'min_count' => 1
         ],
-        6 => [
+        40 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'внутреннее инженерное оборудование: сантехника, электрика (внутридомовой электрощит с автоматами в открытом виде), котел, бойлер, батареи, насос, камин,  кондиционер, емкости для топлива и/или воды и т.п. - крупным планом;',
             'min_count' => 1
         ],
-        7 => [
+        41 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'пожарную сигнализацию - все элементы крупным планом;',
             'min_count' => 1
         ],
-        8 => [
+        42 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'охранная сигнализация - все элементы крупным планом;',
             'min_count' => 1
         ],
-        9 => [
+        43 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'внутреннюю отделку: общие планы каждого помещения (с двух противоположных сторон), необходимо отразить все элементы внутренней отделки крупным планом: пол, потолок, стены, двери, встроенная мебель;',
             'min_count' => 2
         ],
-        10 => [
+        44 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'оконный блок: если имеются различные типы окон, то элементы конструкций оконных блоков различных типов, если все окна одинаковы – то достаточно фотографий 1-го оконного блока);',
             'min_count' => 1
         ],
-        11 => [
+        45 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'дефекты и/или повреждения: имеющиеся дефекты и/или повреждения отделки и основных конструкций (трещины подтеки, сколы, копоть, влага и т.п.) крупным планом;',
             'min_count' => 0
         ],
-        12 => [
+        46 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'домашнее имущество в строениях: крупным планом каждый предмет, заявляемый на страхование;',
             'min_count' => 0
         ],
-        13 => [
+        47 => [
             'filetype' => FileType::PHOTO,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'забор:
@@ -94,7 +119,7 @@ class DescriptionSeeder extends Seeder
                 отразить наличие/отсутствие искусственного рва между забором и дорогой.',
             'min_count' => 1
         ],
-        14 => [
+        48 => [
             'filetype' => FileType::DOCUMENT,
             'type' => InsuranceObjectType::COUNTRY_HOUSE,
             'text' => 'План-схема должна содержать следующую информацию:
