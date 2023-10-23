@@ -151,7 +151,6 @@ def handle_menu(message, bot):
         elif UserRole.USER.value in user_roles:
             markup.add("Подача новой заявки", "Заявки в обработке")
 
-
         bot.send_message(user_id, "Выберите действие:", reply_markup=markup)
 
     except ClientException as e:
@@ -177,7 +176,7 @@ def handle_requests(message, bot, is_history=False):
 
         requests = database.get_requests_page(user_id, page=(current_page + 1))
 
-        total_pages = requests['data']['total']
+        total_requests = requests['total']
 
         if is_history:
             empty_message = "История заявок пуста."
@@ -188,15 +187,15 @@ def handle_requests(message, bot, is_history=False):
 
         if requests:
             status_message = message_template
-            markup = interface.create_markup_for_request(requests)
+            markup = interface.create_markup_for_request(requests['data'])
 
             left = types.InlineKeyboardButton("⬅️", callback_data=f'prevpage_{"history" if is_history else "status"}')
             right = types.InlineKeyboardButton("➡️", callback_data=f'nextpage_{"history" if is_history else "status"}')
 
-            if current_page > interface.INITIAL_VALUE and end_index < total_pages:
+            if current_page > interface.INITIAL_VALUE and end_index < total_requests:
                 markup.row(left, right)
             else:
-                if end_index < total_pages:
+                if end_index < total_requests:
                     markup.add(right)
                 else:
                     markup.add(left)
@@ -267,7 +266,8 @@ def handle_help(message, bot):
         help_list = user_helps[user_role]
 
         for k, v in help_list.items():
-            hp = types.InlineKeyboardButton(text=v['title'], parse_mode=interface.PARSE_MODE,
+            hp = types.InlineKeyboardButton(text=f"{v['title']}",
+                                            parse_mode=interface.PARSE_MODE,
                                             callback_data=f'help_{k}')
             keyboard.add(hp)
 
@@ -292,15 +292,28 @@ def handle_page_inline_button_pressed(call, bot):
         users[user_id]['current_page'] -= 1
     elif 'nextpage' in call.data:
         users[user_id]['current_page'] += 1
-    handlers.client.handle_requests(call.message, bot, mode)
+    handle_requests(call.message, bot, mode)
 
 
-"""
-def add_file(message, bot):
-    file_name = message.document.file_name
-    file_info = bot.get_file(message.document.file_id)
-    print(file_info.path)
-"""
+def handle_help_button_pressed(call, bot):
+    """
+    general_photo_requirements_description = user_helps[GENERAL_PHOTO_REQUIREMENTS]["description"]
+    help_category = call.data.split('_')[1]
+    information = (f'{user_helps[help_category][HELP_TITLE_CATEGORY]}'
+                   f'\n\n{user_helps[help_category][HELP_DESCRIPTION_CATEGORY]}'
+                   f'{general_photo_requirements_description if help_category != GENERAL_PHOTO_REQUIREMENTS else ""}')
+    bot.send_message(call.message.chat.id, information, parse_mode="Markdown")"""
+
+    """
+    user_id = message.chat.id
+    bot.send_message(user_id, "Доступны несколько разделов справки😌")
+    user_id = message.chat.id
+    keyboard = types.InlineKeyboardMarkup()
+    for help in helps_moderator.keys():
+        hp = types.InlineKeyboardButton(text=f"{helps_moderator[help]['title']}", callback_data=f'help_{help}')
+        keyboard.add(hp)
+    bot.send_message(user_id, "Выберите нужный раздел:", reply_markup=keyboard)"""
+    pass
 
 
 def command_default(message, bot):
@@ -310,12 +323,12 @@ def command_default(message, bot):
 def register_handlers_common(bot):
     bot.register_message_handler(handle_start, commands=['start'], pass_bot=True)
     bot.register_message_handler(handle_help, func=lambda
-        message: message.text == "Справка пользователя" or message.text == "Справка модератора", pass_bot=True)
+        message: message.text == "Как пройти осмотр?" or message.text == "FAQ", pass_bot=True)
     bot.register_message_handler(handle_menu, commands=['menu'], pass_bot=True)
     """bot.register_message_handler(add_file, content_types=['document', 'photo', 'audio', 'video', 'voice'],
                                  pass_bot=True)"""
     bot.register_message_handler(command_default, content_types=['text'], pass_bot=True)
-    bot.register_callback_query_handler(handle_page_inline_button_pressed,
+    bot.register_callback_query_handler(handle_help_button_pressed,
                                         func=lambda call: re.search(r'^help', call.data), pass_bot=True)
     bot.register_callback_query_handler(handle_page_inline_button_pressed,
                                         func=lambda call: 'page' in call.data, pass_bot=True)

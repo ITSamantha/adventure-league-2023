@@ -2,12 +2,11 @@ import re
 
 from telebot import types
 
-import telebot
-
 import handlers
+import interface
 from converters.converter import StringConverter
 from enums.BotMessageException import BotMessageException
-from enums.RequestStatus import RequestStatus
+from dictionaries.request_statuses import request_statuses
 from enums.UserRole import UserRole
 from exceptions.ClientException import ClientException
 from exceptions.ServerException import ServerException
@@ -25,7 +24,7 @@ def callback_client_load_request(call, bot):
     current_req = requests[int(call.data.split('_')[1])]
     user_id = str(call.message.chat.id)
     try:
-        user = HttpClient.get('get_user', user_id)
+        """user = HttpClient.get('get_user', user_id)
         message = f"        ___Заявка №{current_req['id']}___\n\n" \
                   f"___Статус___:       Одобрена{RequestStatus.OK.value}\n" \
                   f"___Владелец___:     {user['data']['name']}\n" \
@@ -42,7 +41,8 @@ def callback_client_load_request(call, bot):
             keyboard.add(key_1)
             keyboard.add(key_2)
             keyboard.add(key_3)
-            bot.send_message(call.message.chat.id, 'Необходимо выбрать статус заявки:', reply_markup=keyboard)
+            bot.send_message(call.message.chat.id, 'Необходимо выбрать статус заявки:', reply_markup=keyboard)"""
+        pass
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
         print(str(e))
@@ -82,55 +82,7 @@ def handle_insured_objects(call, bot):
     handle_request_information(call.message, bot)
 
 
-"""
-# Обработчик загрузки фотографий
-def handle_photos(message, user_data, photos):
-    # print(f'Handle photos:{message}')
-    user_id = message.chat.id
-    if not photos:
-        bot.send_message(user_id, f'Заявка отправлена! Ожидайте рассмотрения☺️.')
-        handle_menu(message)
-    bot.send_message(user_id, f'Отправьте фото, соответствующее следующему описанию. {photos[0]}')
-    bot.register_next_step_handler(message, get_photo, photos)
 
-def get_photo(message, photos):
-
-    print(message)
-
-    files = []
-    user_id = message.chat.id
-    if message.document:
-        files.append(message.document)
-    elif message.audio:
-        files.append(message.audio)
-    elif message.photo:
-        files.extend(message.photo)  # Добавляем все фотографии из сообщения в список
-    elif message.video:
-        files.append(message.video)
-    elif message.voice:
-        files.append(message.voice)
-    elif message.sticker:
-        files.append(message.sticker)
-
-    photos.pop(0)
-
-    for file in files:
-        file_id = file.file_id
-        file_info = bot.get_file(file_id)
-        file_path = file_info.file_path
-        downloaded_file = bot.download_file(file_info.file_path)
-        src = file_info.file_path
-        with open(src, 'wb') as new_file:
-            new_file.write(downloaded_file)
-        bot.send_message(user_id, f"Путь к файлу: {file_path}")
-
-    bot.register_next_step_handler(message, get_photo, photos)
-
-
-"""
-
-
-# Обработчик ввода текстового описания
 def handle_approve_request(message, bot):
     user_id = str(message.chat.id)
     user_id = str(message.chat.id)
@@ -149,15 +101,15 @@ def handle_approve_request(message, bot):
 
 
 def handle_request_information(message, bot):
-    user_id = message.chat.id
+    user_id = str(message.chat.id)
     try:
         json = {
             'insurance_object_id': handlers.common.users[str(user_id)]['current_request']['insured_object_type_id']
         }
         global iofts
-        iofts = HttpClient.post('insurance_object_file_types/get', str(user_id), json=json)['data']
+        iofts = HttpClient.post('insurance_object_file_types/get', user_id, json=json)['data']
         markup = types.ReplyKeyboardMarkup(True, True)
-        markup.add("Давайте", "Не нужно")
+        markup.add("Попробовать", "Не требуется")
         bot.send_message(user_id, '\nВАЖНО. Фото для осмотра должны быть сделаны только с помощью телефона. '
                                   'Для корректной обработки фото Вам необходимо предоставить доступ к геолокации в приложении "Камера". Это можно сделать в разделе "Настройки" камеры.'
                                   '("Камера" -> "Настройки" -> "Сохранять место съемки"). \n\n'
@@ -167,29 +119,6 @@ def handle_request_information(message, bot):
                          "Давайте проверим, правильно ли у вас настроено устройство, чтобы загружать фото/видео материалы осмотра. Для этого мы предлагаем вам пройти небольшую процедуру проверки - сделайте перед осмотром тестовое фото и загрузите его следующим сообщением как документ. Если всё пройдёт успешно, мы выдадим вам полный список того, что необходимо будет зафиксировать для совершения акта осмотра.",
                          reply_markup=markup)
         user_photo_upload_stage[user_id] = 'asked'
-        # title = insurance_object_files[0]['file_description']
-        # bot.send_message(user_id, title, reply_markup=markup)
-
-        # for file_type in insurance_object_files:
-        # Здесь пользователь может загружать несколько файлов для текущего file_type
-        # handlers.common.users[user_id]['current_request']['files_uploaded'] = 0
-        # Проверьте, сколько файлов нужно загрузить для текущего file_type
-        # num_files_to_upload = file_type['min_photo_count']  # Замените это на ваше значение
-        # bot.send_message(user_id,
-        #                  f"Загрузите файл для {file_type['file_description']} (минимум {num_files_to_upload}):")
-        # while handlers.common.users[user_id]['current_request']['files_uploaded'] < num_files_to_upload:
-        #     @bot.message_handler(content_types=['document'])
-        #     def handle_document(message):
-        #         if message.chat.id == int(user_id):
-        #             Добавьте загруженный файл в список
-        # handlers.common.users[user_id]['current_request']['files_uploaded'] += 1
-        # print('Photo handled')
-        #
-        # Если все файлы загружены, завершите цикл
-        # if handlers.common.users[user_id]['current_request']['files_uploaded'] == num_files_to_upload:
-        #     return
-    #
-
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
         print(str(e))
@@ -242,13 +171,11 @@ def handle_user_list_of_requests(message, bot):
 def handle_requests_history(message, bot):
     user_id = str(message.chat.id)
     define_current_page(user_id)
-    handlers.common.handle_requests(message, bot, False)
+    handlers.common.handle_requests(message, bot, True)
 
 
 def define_current_page(user_id):
-    if user_id not in handlers.common.users:
-        handlers.common.users[user_id] = {}
-
+    handlers.common.check_user_in_users(user_id)
     handlers.common.users[user_id]['current_page'] = 0
 
 
@@ -279,12 +206,12 @@ def relay_message(message, bot):
 
 
 def handle_test_photo_request(message, bot):
-    user_id = message.chat.id
+    user_id = str(message.chat.id)
     if user_id in user_photo_upload_stage:
         if user_photo_upload_stage[user_id] == 'asked':
             bot.send_message(message.chat.id, "Можете загружать фото следующим сообщением. Убедитесь, что вы "
                                               "загружаете его именно файлом, а не фотографией (отключите сжатие).",
-                             reply_markup=None)
+                             reply_markup=interface.remove_keyboard)
             user_photo_upload_stage[user_id] = 'test'
 
 
@@ -294,7 +221,10 @@ def handle_photos_request(message, bot):
 
 def add_file(message, bot):
     print(message)
-    user_id = message.chat.id
+    user_id = str(message.chat.id)
+
+    bot.send_message(user_id, 'Фото отправлено. Ожидайте окончания обработки😌', reply_markup=interface.remove_keyboard)
+
     if user_id in user_photo_upload_stage:
         if user_photo_upload_stage[user_id] == 'test':
             user_photo_upload_stage[user_id] = 'pending'
@@ -306,9 +236,23 @@ def add_file(message, bot):
     file_info = bot.get_file(message.document.file_id)
 
 
+def handle_techical_help(message, bot):
+    user_id = str(message.chat.id)
+
+    bot.send_message(user_id,
+                     'Уважаемый клиент!\n\nВы всегда можете связаться с одним из модераторов с помощью кнопки ___"Связаться с модератором"___ для решения вопроса по поводу подачи заявки.\n\n'
+                     'Если вы не нашли ответ на интересующий вопрос, свяжитесь с сотрудником поддержки в [онлайн-чате](https://sovcombank.ru/help). '
+                     'Также вы можете отправить нам свой отзыв или вопрос через [форум обратной связи](https://idea.sovcombank.ru/forum/).\n\n'
+                     '___Телефон горячей линии (для звонков по России (бесплатно) ):___\n +8 800 100 00 06\n'
+                     '___Телефон горячей линии (для звонков из-за рубежа (платно) ):___\n +7 495 988 00 00\n',
+                     parse_mode=interface.PARSE_MODE)
+
+    handlers.common.handle_menu(message, bot)
+
+
 def register_handlers_client(bot):
     bot.register_message_handler(handle_user_list_of_requests,
-                                 func=lambda message: message.text == "Просмотр статуса заявок", pass_bot=True)
+                                 func=lambda message: message.text == "Заявки в обработке", pass_bot=True)
     bot.register_message_handler(handle_requests_history,
                                  func=lambda message: message.text == "Просмотр истории заявок", pass_bot=True)
     bot.register_message_handler(handle_new_request,
@@ -321,9 +265,12 @@ def register_handlers_client(bot):
                                  func=lambda message: False, pass_bot=True)"""
     bot.register_message_handler(add_file, content_types=['document'],
                                  pass_bot=True)
-    bot.register_message_handler(handle_test_photo_request, func=lambda message: message.text == "Давайте",
+    bot.register_message_handler(handle_test_photo_request, func=lambda message: message.text == "Попробовать",
                                  pass_bot=True)
-    bot.register_message_handler(handle_photos_request, func=lambda message: message.text == "Не нужно", pass_bot=True)
+    bot.register_message_handler(handle_photos_request, func=lambda message: message.text == "Не требуется",
+                                 pass_bot=True)
+    bot.register_message_handler(handle_techical_help, func=lambda message: message.text == "Техническая поддержка",
+                                 pass_bot=True)
 
     bot.register_callback_query_handler(callback_client_load_request,
                                         func=lambda call: re.search(r'^request', call.data), pass_bot=True)

@@ -7,10 +7,12 @@ def get_user(user_id):
 
 
 def get_requests_page(user_id, page=1):
-    response = HttpClient.get('insurance_requests', user_id)['data']
+    response = HttpClient.get('insurance_requests', user_id, json={
+        'page': page
+    })['data']
     return response
 
 
 def get_user_roles(user_id):
     user_data = get_user(user_id)
-    return list(map(lambda x : x['id'], user_data['data']['roles']))
+    return list(map(lambda x: x['id'], user_data['data']['roles']))
