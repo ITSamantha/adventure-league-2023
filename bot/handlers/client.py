@@ -2,47 +2,53 @@ import re
 
 from telebot import types
 
+import database
 import handlers
 import interface
 from converters.converter import StringConverter
 from enums.BotMessageException import BotMessageException
 from dictionaries.request_statuses import request_statuses
-from enums.UserRole import UserRole
 from exceptions.ClientException import ClientException
 from exceptions.ServerException import ServerException
 
 from http_client.http_client import HttpClient
 
 remove_keyboard = types.ReplyKeyboardRemove(selective=False)
-iofts = []
-user_photo_upload_stage = {
 
-}
+user_photo_upload_stage = {}
 
 
 def callback_client_load_request(call, bot):
-    current_req = requests[int(call.data.split('_')[1])]
     user_id = str(call.message.chat.id)
+
+    current_request_id = int(handlers.common.split_callback_data(call.data))
+
     try:
-        """
-        user = HttpClient.get('get_user', user_id)
-        message = f"        ___Заявка №{current_req['id']}___\n\n" \
-                  f"___Статус___:       Одобрена{RequestStatus.OK.value}\n" \
-                  f"___Владелец___:     {user['data']['name']}\n" \
-                  f"___Тип страхуемого объекта___:      {current_req['type']}\n" \
-                  f"___Описание___:     {current_req['description']}\n\n" \
-                  f"Фото: {current_req['photos']}\n"
-        bot.send_message(call.message.chat.id, message, parse_mode=handlers.common.PARSE_MODE)
-        if user['data']['roles'][0] == UserRole.MODERATOR.value:
+        user = HttpClient.get('get_user', user_id)['data']
+        request = database.get_request(user_id, current_request_id)['data']
+
+        status_name = request['status']
+        status_id = request['status_id']
+
+        text = ["___Заявка №{request_id}___\n".format(request_id=request['id']),
+                "___Статус___: {status_name}{status_char} \n\n".format(status_name=status_name,
+                                                                       status_char=request_statuses[status_id]),
+                "___Владелец___: {name}\n".format(name=user['name']),
+                "___Тип страхуемого объекта___: {type} ".format(type=request['insurance_object_type_name']), ]
+
+        message = ''.join(text)
+
+        bot.send_message(call.message.chat.id, message, parse_mode=interface.PARSE_MODE)
+        """if user['data']['roles'][0] == UserRole.MODERATOR.value:
             keyboard = types.InlineKeyboardMarkup()
-            key_1 = types.InlineKeyboardButton(text=f'Одобрена{RequestStatus.OK.value}', callback_data='req_yes')
-            key_2 = types.InlineKeyboardButton(text=f'На рассмотрении{RequestStatus.WAIT.value}',
-                                               callback_data='req_wait')
-            key_3 = types.InlineKeyboardButton(text=f'Отклонена{RequestStatus.NOT_OK.value}', callback_data='req_no')
-            keyboard.add(key_1)
-            keyboard.add(key_2)
-            keyboard.add(key_3)
-            bot.send_message(call.message.chat.id, 'Необходимо выбрать статус заявки:', reply_markup=keyboard)"""
+        key_1 = types.InlineKeyboardButton(text=f'Одобрена{RequestStatus.OK.value}', callback_data='req_yes')
+        key_2 = types.InlineKeyboardButton(text=f'На рассмотрении{RequestStatus.WAIT.value}',
+                                           callback_data='req_wait')
+        key_3 = types.InlineKeyboardButton(text=f'Отклонена{RequestStatus.NOT_OK.value}', callback_data='req_no')
+        keyboard.add(key_1)
+        keyboard.add(key_2)
+        keyboard.add(key_3)
+        bot.send_message(call.message.chat.id, 'Необходимо выбрать статус заявки:', reply_markup=keyboard)"""
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
         print(str(e))
@@ -65,10 +71,11 @@ def handle_insured_objects(call, bot):
     try:
         json = {
             'object_type_id': insurance_object_type_id,
-            'comment': '-'
+            'comment': 'comment'
         }
         response = HttpClient.post('insurance_requests', user_id, json=json)['data']
         handlers.common.users[user_id]['current_request']['id'] = response['id']
+        handle_request_information(call.message, bot)
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
         print(str(e))
@@ -76,14 +83,11 @@ def handle_insured_objects(call, bot):
         bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
         print(str(e))
     except Exception as e:
-        print("HAHA")
         bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
         print(str(e))
-    handle_request_information(call.message, bot)
 
 
 def handle_approve_request(message, bot):
-    user_id = str(message.chat.id)
     user_id = str(message.chat.id)
     if user_id in handlers.common.users:
         handlers.common.users[user_id]['current_request'] = {}
@@ -158,9 +162,6 @@ def handle_new_request(message, bot):
         print(str(e))
 
 
-requests = [{'id': x, 'type': 'Транспортное средство', 'description': 'd', 'photos': None} for x in range(100)]
-
-
 def handle_user_list_of_requests(message, bot):
     user_id = str(message.chat.id)
     define_current_page(user_id)
@@ -220,6 +221,7 @@ def handle_photos_request(message, bot):
 
 def add_file(message, bot):
     print(message)
+    print(message.document.file_name)
     user_id = str(message.chat.id)
 
     bot.send_message(user_id, 'Фото отправлено. Ожидайте окончания обработки😌', reply_markup=interface.remove_keyboard)
@@ -233,6 +235,8 @@ def add_file(message, bot):
 
     file_name = message.document.file_name
     file_info = bot.get_file(message.document.file_id)
+
+    print(file_info)
 
 
 def handle_techical_help(message, bot):
@@ -260,8 +264,10 @@ def register_handlers_client(bot):
                                  func=lambda message: False)
     bot.register_message_handler(start_chat,
                                  func=lambda message: message.text == "Связаться с модератором", pass_bot=True)
-    """bot.register_message_handler(relay_message,
-                                 func=lambda message: False, pass_bot=True)"""
+    """
+@bot.register_message_handler(relay_message,
+                             func=lambda message: False, pass_bot=True)
+"""
     bot.register_message_handler(add_file, content_types=['document'],
                                  pass_bot=True)
     bot.register_message_handler(handle_test_photo_request, func=lambda message: message.text == "Попробовать",

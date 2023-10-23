@@ -2,8 +2,9 @@ import re
 from telebot import types
 
 import database
-import dictionaries.user_data
-import handlers.client
+import dictionaries.help
+import handlers
+
 import interface
 from converters.converter import StringConverter
 from dictionaries.help import user_helps
@@ -14,6 +15,7 @@ from enums.UserRole import UserRole
 from exceptions import ClientException, ServerException
 from http_client.http_client import HttpClient
 from validators.validator import Validator
+from dictionaries.help import *
 
 users = {}
 
@@ -225,7 +227,7 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
     is_digit = Validator.is_digit_in_str(data)
 
     if not is_digit:
-
+        check_user_in_users(user_id)
         users[user_id][user_data[type_id]['type']] = StringConverter.capitalize_str_from_lower_case(data)
         bot.send_message(message.from_user.id, 'Супер, принято!')
 
@@ -242,7 +244,9 @@ def get_text_user_data(message: types.Message, type_id: int, bot):
             text = f'___Проверьте, пожалуйста, правильность введенных данных___\n\nФамилия: {user["surname"]}\nИмя: {user["name"]}\nОтчество: {user["patronymic"]}'
             bot.send_message(message.from_user.id, text, reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
         else:
-            bot.send_message(message.from_user.id, f"Введите {user_data[type_id + 1]['value']}:")
+            bot.send_message(message.from_user.id,
+                             'Введите поле ___"{value}:___"'.format(value=user_data[type_id + 1]["value"]),
+                             reply_markup=interface.remove_keyboard, parse_mode=interface.PARSE_MODE)
             bot.register_next_step_handler(message, get_text_user_data, type_id + 1, bot)
     else:
         bot.send_message(message.from_user.id,
@@ -296,24 +300,34 @@ def handle_page_inline_button_pressed(call, bot):
 
 
 def handle_help_button_pressed(call, bot):
-    """
-    general_photo_requirements_description = user_helps[GENERAL_PHOTO_REQUIREMENTS]["description"]
-    help_category = call.data.split('_')[1]
-    information = (f'{user_helps[help_category][HELP_TITLE_CATEGORY]}'
-                   f'\n\n{user_helps[help_category][HELP_DESCRIPTION_CATEGORY]}'
-                   f'{general_photo_requirements_description if help_category != GENERAL_PHOTO_REQUIREMENTS else ""}')
-    bot.send_message(call.message.chat.id, information, parse_mode="Markdown")"""
+    user_id = str(call.message.chat.id)
 
-    """
-    user_id = message.chat.id
-    bot.send_message(user_id, "Доступны несколько разделов справки😌")
-    user_id = message.chat.id
-    keyboard = types.InlineKeyboardMarkup()
-    for help in helps_moderator.keys():
-        hp = types.InlineKeyboardButton(text=f"{helps_moderator[help]['title']}", callback_data=f'help_{help}')
-        keyboard.add(hp)
-    bot.send_message(user_id, "Выберите нужный раздел:", reply_markup=keyboard)"""
-    pass
+    general_photo_requirements_description = dictionaries.help.general_requirements['description']
+    help_category = split_callback_data(call.data)
+    try:
+
+        user = database.get_user(user_id)
+        if user['data']:
+            role = user['data']['roles'][0]['id']
+        else:
+            bot.send_message(user_id, "К сожалению, Вы не авторизованы.")
+            return
+
+        information = (f'{user_helps[role][help_category][HELP_TITLE]}'
+                       f'\n\n{user_helps[role][help_category][HELP_DESCRIPTION]}'
+                       f'{general_photo_requirements[HELP_DESCRIPTION] if help_category != GENERAL_REQUIREMENTS else ""}')
+        bot.send_message(call.message.chat.id, information, parse_mode="Markdown")
+
+    except ClientException as e:
+        bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
+        print(str(e))
+    except ServerException as e:
+        bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+        print(str(e))
+    except Exception as e:
+        bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+        print(str(e))
+    handle_menu(call.message, bot)
 
 
 def command_default(message, bot):

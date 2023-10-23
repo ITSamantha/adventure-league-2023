@@ -1,5 +1,9 @@
 from enums.UserRole import UserRole
 
+HELP_TITLE = 'title'
+HELP_DESCRIPTION = 'description'
+GENERAL_REQUIREMENTS = 'general-photo-requirements'
+
 general_requirements = {
     'title': 'Общие требования',
     'description':
@@ -9,23 +13,25 @@ general_requirements = {
         '      4. Акт прикладывается к комплекту документов для заключения договора страхования.\n\n'
 }
 
+general_photo_requirements = {
+    'title': 'Общие требования к фото',
+    'description':
+        '\n      ___ВАЖНО___. Фото для осмотра должны быть сделаны только с помощью ___телефона___. '
+        'Для корректной обработки фото Вам необходимо предоставить доступ к геолокации ___в приложении "Камера"___. Это можно сделать в разделе "Настройки" камеры.\n\n'
+        '       Для того, чтобы предоставить доступ к данным местоположения, необходимо сделать следующее:\n'
+        '___"Камера" -> "Настройки" -> "Сохранять место съемки"("Тег местоположения" и другие, в зависимости от модели телефона).___\n\n'
+        '       ___Фотоматериалы также должны удовлетворять следующим требованиям:___\n\n'
+        '- Редактирование фотоматериалов объекта страхования ___строго запрещено.___\n'
+        '- Разрешение фото должно быть ___не ниже 1600x1200 пикселей.___'
+}
+
 user_helps = {
     UserRole.USER.value: {
         'general-requirements':
             general_requirements,
 
-        'general-photo-requirements': {
-            'title': 'Общие требования к фото',
-            'description':
-                '\n      ___ВАЖНО___. Фото для осмотра должны быть сделаны только с помощью ___телефона___. '
-                'Для корректной обработки фото Вам необходимо предоставить доступ к геолокации ___в приложении "Камера"___. Это можно сделать в разделе "Настройки" камеры.\n\n'
-                '       Для того, чтобы предоставить доступ к данным местоположения, необходимо сделать следующее:\n'
-                '___"Камера" -> "Настройки" -> "Сохранять место съемки"("Тег местоположения" и другие, в зависимости от модели телефона).___\n\n'
-                '       ___Фотоматериалы также должны удовлетворять следующим требованиям:___\n\n'
-                '- Редактирование фотоматериалов объекта страхования ___строго запрещено.___\n'
-                '- Разрешение фото должно быть ___не ниже 1600x1200 пикселей.___'
-
-        },
+        'general-photo-requirements':
+            general_photo_requirements,
 
         'transport-requirements':
             {'title': 'Требования к осмотру транспортного средства',
@@ -73,10 +79,18 @@ user_helps = {
              'photos': ['static/country_houses/plan-scheme.png']
              }},
     UserRole.MODERATOR.value: {
-        'general-requirements': general_requirements,
+        'general-requirements':
+            general_requirements,
+
+        'general-photo-requirements':
+            general_photo_requirements,
     },
     UserRole.ADMIN.value:
-        {'general-requirements': general_requirements, }
+        {'general-requirements':
+             general_requirements,
+
+         'general-photo-requirements':
+             general_photo_requirements, }
 
 }
 

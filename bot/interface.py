@@ -17,5 +17,5 @@ def create_markup_for_request(user_requests):
             types.InlineKeyboardButton(
                 f"ID: {request['id']}. {request['irt']['name']}, "
                 f"Статус: {request['status']['name']}{request_statuses[request['status']['id']]}\n",
-                callback_data=f'request_{i}'))
+                callback_data=f"request_{request['id']}"))
     return markup

@@ -1,9 +1,8 @@
 user_data = [
     {'type': 'surname',
-     'value': 'фамилию'},
+     'value': 'Фамилия'},
     {'type': 'name',
-     'value': 'имя'},
+     'value': 'Имя'},
     {'type': 'patronymic',
-     'value': 'отчество'},
+     'value': 'Отчество'},
 ]
-
