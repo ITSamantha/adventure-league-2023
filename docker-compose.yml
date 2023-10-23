@@ -23,6 +23,7 @@ services:
       - ./api/certbot/www:/var/www/certbot
   laravel:
     container_name: api_laravel
+    tty: true
     restart: unless-stopped
     build:
       context: ./api

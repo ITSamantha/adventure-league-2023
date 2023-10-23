@@ -17,13 +17,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     libpq-dev \
     cron \
-    supervisor
-
+    supervisor \
+    ffmpeg
+#RUN apt update && apt install php8.1-gd
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install extensions
 RUN docker-php-ext-install pgsql pdo_pgsql zip exif pcntl
+RUN docker-php-ext-configure gd --with-freetype=/usr/include/ --with-jpeg=/usr/include/
+RUN docker-php-ext-install gd
 
 EXPOSE 9000
 CMD /var/www/api/start.bash
