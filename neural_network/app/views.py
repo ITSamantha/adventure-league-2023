@@ -9,7 +9,7 @@ from model.model import create_dataframe_from_photos
 from utils.images import base64_to_image
 from os.path import join, dirname, realpath
 
-STATIC_PATH = os.getenv('STATIC_PATH')
+#STATIC_PATH = os.getenv('STATIC_PATH')
 
 @app.route('/upload_images', methods=['POST'])
 def upload_images():
@@ -27,7 +27,7 @@ def upload_images():
                         images_ids.append(image_id)
                 images = list(map(base64_to_image, images))
                 df = create_dataframe_from_photos(images)
-                lr = joblib.load(STATIC_PATH + 'logistic_regression_model.pkl')
+                lr = joblib.load('/app/app/logistic_regression_model.pkl')
                 predicted_probs = lr.predict_proba(df).tolist()
                 containers = {container: 1 for container in set(images_containers)}
                 images_result = {image_id: 1 for image_id in set(images_ids)}
@@ -48,10 +48,10 @@ def upload_images():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/')
-def home():
-    lr = joblib.load(STATIC_PATH + 'logistic_regression_model.pkl')
-    return jsonify({'hello': 'world'})
+#@app.route('/')
+#def home():
+#    lr = joblib.load(STATIC_PATH + 'logistic_regression_model.pkl')
+#    return jsonify({'hello': 'world'})
 
 
-app.run(debug=True)
+#app.run(debug=True)
