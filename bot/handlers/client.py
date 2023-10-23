@@ -1,3 +1,4 @@
+import os
 import re
 
 from telebot import types
@@ -225,13 +226,28 @@ def add_file(message, bot):
     if user_id in user_photo_upload_stage:
         if user_photo_upload_stage[user_id] == 'test':
             user_photo_upload_stage[user_id] = 'pending'
+            try:
+                file_name = message.document.file_name
+                file_info = bot.get_file(message.document.file_id)
+                payload = {
+                    'link': 'https://api.telegram.org/file/bot' + os.getenv('TELEGRAM_BOT_TOKEN') + file_info.file_path
+                }
+                response = HttpClient.post('test-image', user_id, json=payload)
+            except ClientException as e:
+                bot.send_message(user_id, "К сожалению, изображение")
+                print(str(e))
+            except ServerException as e:
+                bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+                print(str(e))
+            except Exception as e:
+                bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+                print(str(e))
             print('got file')  # only once because of statuses
             # todo send to backend
             # todo ask Diana
             insurance_types = HttpClient.get('insurance_objects', user_id)['data']
 
-    file_name = message.document.file_name
-    file_info = bot.get_file(message.document.file_id)
+
 
 
 def handle_techical_help(message, bot):
