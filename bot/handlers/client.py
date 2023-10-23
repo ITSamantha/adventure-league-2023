@@ -25,9 +25,7 @@ user_photo_upload_stage = {
 }
 user_file_data = {}
 
-
 user_photo_upload_stage = {}
-
 
 
 def callback_client_load_request(call, bot):
@@ -286,7 +284,6 @@ def add_file(message, bot):
             user_file_data[user_id][iofts[user_id][current_ioft]['id']].append(file_info.file_path)
 
 
-
 def add_text(message, bot):
     user_id = str(message.chat.id)
     if user_id in user_photo_upload_stage:
@@ -337,18 +334,57 @@ def handle_start_upload(message, bot):
 
     user_photo_upload_stage[user_id] = 'uploading_' + str(current_ioft)
     if int(iofts[user_id][current_ioft]['file_type_id']) == int(FileType.TEXT.value):
-        bot.send_message(user_id, "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
+        bot.send_message(user_id,
+                         "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
                          iofts[user_id][current_ioft]['file_description'])
     else:
-        bot.send_message(user_id, "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
+        bot.send_message(user_id,
+                         "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
                          iofts[user_id][current_ioft]['file_description'], reply_markup=markup1)
 
 
 def handle_upload_fill_ira(message, bot):
     user_id = str(message.chat.id)
-    # current_ioft = int(user_photo_upload_stage[user_id].split('_')[1])
-    handle_start_upload(message, bot)
-    print(user_file_data[user_id])
+    current_ioft = int(user_photo_upload_stage[user_id].split('_')[1])
+    if int(iofts[user_id][current_ioft]['file_type_id']) == int(FileType.TEXT.value):
+        payload = {
+            'text': user_file_data[user_id][iofts[user_id][current_ioft]['id']],
+            'insurance_request_id': 1,
+            'insurance_object_file_type': iofts[user_id][current_ioft]['id'],
+        }
+
+    else:
+        links = list(map(
+            lambda x: 'https://api.telegram.org/file/bot' + os.getenv(
+                'TELEGRAM_BOT_TOKEN') + '/' + x,
+            user_file_data[user_id][iofts[user_id][current_ioft]['id']]
+        ))
+        payload = {
+            'links': links,
+            'insurance_request_id': 1,
+            'insurance_object_file_type': iofts[user_id][current_ioft]['id'],
+        }
+
+    try:
+        print(payload)
+        response = HttpClient.post('ira', user_id, json=payload)
+        if response['success']:
+            handle_start_upload(message, bot)
+        else:
+            bot.send_message(user_id, response['message'])
+            current_ioft = int(user_photo_upload_stage[user_id].split('_')[1]) - 1
+            user_photo_upload_stage[user_id] = 'uploading_' + str(current_ioft)
+            handle_start_upload(message, bot)
+        return
+    except ClientException as e:
+        bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
+        print(str(e))
+    except ServerException as e:
+        bot.send_message(user_id, BotMessageException.SERVER_EXCEPTION_MSG)
+        print(str(e))
+    except Exception as e:
+        bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
+        print(str(e))
 
 
 def register_handlers_client(bot):
