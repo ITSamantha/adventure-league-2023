@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\DTO\ImageMetaData;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -67,24 +68,22 @@ class File extends Model
      *
      * @return Collection<File>
      */
-    public static function createFromMany($files, $data): Collection
+    public static function createFromMany($files, $data, ImageMetaData $metaData): Collection
     {
         $createdFiles = collect();
 
+        $geolocation = Geolocation::query()->create([
+           'longitude' => $metaData->longitude,
+           'latitude' => $metaData->latitude,
+           'address' => '-',
+        ]);
+
         foreach ($files as $path) {
-//            $extension = pathinfo($path, PATHINFO_EXTENSION);
-//            $newPath = Str::random(40) . '.' . $extension;
-//
-//            Storage::disk('images')->put($newPath, file_get_contents($path));
-//            unlink($path);  // delete tmp file from /tmp
-
-            //todo create geolocation, taken_at
-
             $newFile = self::query()->create($data + [
                 'original_path' => $path,
                 'edited_path' => null,
-                'taken_at' => Carbon::now(),
-                'geolocation_id' => 1,
+                'taken_at' => $metaData->taken_at,
+                'geolocation_id' => $geolocation->id,
             ]);
 
             $createdFiles->add($newFile);

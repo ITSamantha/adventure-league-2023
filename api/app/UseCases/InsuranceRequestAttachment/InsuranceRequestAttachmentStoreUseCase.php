@@ -65,7 +65,18 @@ class InsuranceRequestAttachmentStoreUseCase
                 $files = $this->telegramService->getFiles($links);
 
                 try {
-                    $this->validateFiles($files, $fileTypeId);
+                    $storagePath = $this->validateFiles($files, $fileTypeId);
+                    $md = $this->imageService->getMediaMetaData($storagePath);
+
+                    $ira->attachment_status_id = AttachmentStatus::REVISION_BY_BOT;
+
+                    $fileModels = File::createFromMany($files, [
+                        'insurance_request_attachment_id' => $ira->id,
+                        'file_type_id' => $fileTypeId,
+                    ], $md);
+
+                    $ira->items()->saveMany($fileModels);
+
                 } catch (DimensionsException $e) {
                     foreach ($files as $file) {
                         unlink(Storage::disk('images')->path($file));
@@ -92,14 +103,7 @@ class InsuranceRequestAttachmentStoreUseCase
                     ];
                 }
 
-                $ira->attachment_status_id = AttachmentStatus::REVISION_BY_BOT;
 
-                $fileModels = File::createFromMany($files, [
-                    'insurance_request_attachment_id' => $ira->id,
-                    'file_type_id' => $fileTypeId,
-                ]);
-
-                $ira->items()->saveMany($fileModels);
             } else {
                 $ira->text = $request->input('text');
             }
@@ -117,14 +121,21 @@ class InsuranceRequestAttachmentStoreUseCase
         }
 
         if ($request->input('is_last')) {
-            //validate via imageservice todo geo time
+            //validate via imageservice
+            $imageService = new ImageService();
+            try {
+                $imageService->validateImagesInInsuranceRequest($ir);
+            } catch (ImageException $e) {
+                return [
+                  'success' => false,
+                  'message' => 'Фото было сделано в разных местах или в разное время.',
+                ];
+            }
 
             // send to nn validation
             if ($fileTypeId === FileType::PHOTO) {
                 NeuralNetService::sendToValidation($result['data']);
             }
-            // ping bot if last
-            TGBotService::lol();
         }
 
         return $result;
@@ -139,7 +150,7 @@ class InsuranceRequestAttachmentStoreUseCase
      * @throws DimensionsException
      * @throws ImageException
      */
-    protected function validateFiles(array $files, int $fileTypeId): array
+    protected function validateFiles(array $files, int $fileTypeId): string
     {
         $errors = [];
 
@@ -151,7 +162,7 @@ class InsuranceRequestAttachmentStoreUseCase
                     if ($width < self::MIN_IMAGE_WIDTH || $height < self::MIN_IMAGE_HEIGHT) {
                         throw new DimensionsException();
                     }
-                    $this->imageService->getMediaMetaData($storagePath);
+                    return $storagePath;
                 }
                 break;
             case FileType::VIDEO:
