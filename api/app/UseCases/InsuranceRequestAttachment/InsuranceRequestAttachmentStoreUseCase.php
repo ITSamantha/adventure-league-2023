@@ -95,7 +95,9 @@ class InsuranceRequestAttachmentStoreUseCase
                     ];
                 } catch (ImageException) {
                     foreach ($files as $file) {
-                        unlink(Storage::disk('images')->path($file));
+                        $path = Storage::disk('images')->path($file);
+                        if (file_exists($path))
+                        unlink($path);
                     }
                     return [
                         'success' => false,
