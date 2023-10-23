@@ -367,6 +367,7 @@ def handle_upload_fill_ira(message, bot):
             'insurance_object_file_type': iofts[user_id][current_ioft]['id'],
         }
 
+    print(payload)
     try:
         response = HttpClient.post('ira', user_id, json=payload)
         if response['success']:
@@ -374,6 +375,7 @@ def handle_upload_fill_ira(message, bot):
         else:
             bot.send_message(user_id, response['message'])
             current_ioft = int(user_photo_upload_stage[user_id].split('_')[1]) - 1
+            user_file_data[user_id][iofts[user_id][current_ioft + 1]['id']] = []
             user_photo_upload_stage[user_id] = 'uploading_' + str(current_ioft)
             handle_start_upload(message, bot)
         return
