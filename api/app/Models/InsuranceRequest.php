@@ -49,6 +49,11 @@ class InsuranceRequest extends Model
         return $this->belongsTo(InsuranceRequestStatus::class, 'insurance_request_status_id', 'id');
     }
 
+    public function irt() : BelongsTo
+    {
+        return $this->belongsTo(InsuranceObjectType::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
