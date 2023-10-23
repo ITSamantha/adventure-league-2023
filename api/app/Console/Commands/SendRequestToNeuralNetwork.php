@@ -113,12 +113,6 @@ class SendRequestToNeuralNetwork extends Command
             }
         }
 
-        foreach($data['images'] as $imageId => $value) {
-            $this->drawWatermark($imageId, $value);
-
-            $this->log('watermark drawn');
-        }
-
         if (count($failedIras) === 0) {
             $firstRequestInQueue->insuranceRequest->insurance_request_status_id = InsuranceRequestStatus::PENDING_MANAGER;
         } else {
@@ -132,7 +126,7 @@ class SendRequestToNeuralNetwork extends Command
         ]);
         $this->log('posted to webhook');
 
-        DB::transaction(function () use ($firstRequestInQueue, $processedIras, $failedIras) {
+        DB::transaction(function () use ($firstRequestInQueue, $processedIras, $failedIras, $data) {
             $firstRequestInQueue->save();
             $firstRequestInQueue->insuranceRequest->save();
 
@@ -147,6 +141,12 @@ class SendRequestToNeuralNetwork extends Command
                 ->update([
                     'status_id' => AttachmentStatus::DECLINED,
                 ]);
+
+            foreach($data['images'] as $imageId => $value) {
+                $this->drawWatermark($imageId, $value);
+
+                $this->log('watermark drawn');
+            }
         });
         $this->log('saved all');
     }
@@ -160,54 +160,57 @@ class SendRequestToNeuralNetwork extends Command
 
     protected function drawWatermark($imageId, $success)
     {
-        $image = File::query()->find($imageId);
-        // Load your image
-        $sourceImage = imagecreatefromjpeg(Storage::disk('images')->path($image->original_path)); // Change 'source.jpg' to your image file.
-
-        $watermarkPath = resource_path('/assets/' . ($success ? 'tick' : 'cross') . '.png');
-        // Define the watermark
-        $watermarkImage = imagecreatefrompng($watermarkPath); // Change 'watermark.png' to your watermark image.
-
-        // Set the transparency level for the watermark (0-100)
-        $alpha = 70; // You can adjust this value.
-
-        // Get the dimensions of the source image and watermark
-        $sourceWidth = imagesx($sourceImage);
-        $sourceHeight = imagesy($sourceImage);
-        $watermarkWidth = 30;
-        $watermarkHeight = 30;
-
-        // Calculate the position to place the watermark (e.g., in the bottom right corner)
-        $positionX = $sourceWidth - $watermarkWidth - 10; // Adjust these values as needed
-        $positionY = $sourceHeight - $watermarkHeight - 10;
-
-        // Apply the watermark to the source image
-        imagecopymerge($sourceImage, $watermarkImage, $positionX, $positionY, 0, 0, $watermarkWidth, $watermarkHeight, $alpha);
-
-        // Add text to the image
-        $textColor = imagecolorallocate($sourceImage, 255, 255, 255); // RGB color for the text
-        $text = 'Проверено Совкомбанк Digital Bot. Фото снято: ' . Carbon::parse($image->taken_at)->format("d.m.Y h:i:s");
-        $font = 'arial'; // Path to the font file, e.g., Arial.ttf
-        $fontSize = 15;
-        $textX = 15; // Adjust the text position as needed
-        $textY = 28;
-
-        imagettftext($sourceImage, $fontSize, 0, $textX, $textY, $textColor, $font, $text);
-
-        // Output or save the watermarked image
-//        header('Content-type: image/jpeg'); // Change to the appropriate content type (JPEG, PNG, etc.)
-        $filename = Str::random(40);
-        $filename .= '.' . explode('.', $image->original_path)[1];
-
-        $path = Storage::disk('images')->path($filename);
-
-        imagejpeg($sourceImage, $path); // You can save it to a file or display it
-
-        $image->edited_path = $filename;
-        $image->save();
-
-        // Clean up resources
-        imagedestroy($sourceImage);
-        imagedestroy($watermarkImage);
+        File::query()->where('id', $imageId)->update([
+           'is_nn_validated' => !!$success,
+        ]);
+//        $image = File::query()->find($imageId);
+//        // Load your image
+//        $sourceImage = imagecreatefromjpeg(Storage::disk('images')->path($image->original_path)); // Change 'source.jpg' to your image file.
+//
+//        $watermarkPath = resource_path('/assets/' . ($success ? 'tick' : 'cross') . '.png');
+//        // Define the watermark
+//        $watermarkImage = imagecreatefrompng($watermarkPath); // Change 'watermark.png' to your watermark image.
+//
+//        // Set the transparency level for the watermark (0-100)
+//        $alpha = 70; // You can adjust this value.
+//
+//        // Get the dimensions of the source image and watermark
+//        $sourceWidth = imagesx($sourceImage);
+//        $sourceHeight = imagesy($sourceImage);
+//        $watermarkWidth = 30;
+//        $watermarkHeight = 30;
+//
+//        // Calculate the position to place the watermark (e.g., in the bottom right corner)
+//        $positionX = $sourceWidth - $watermarkWidth - 10; // Adjust these values as needed
+//        $positionY = $sourceHeight - $watermarkHeight - 10;
+//
+//        // Apply the watermark to the source image
+//        imagecopymerge($sourceImage, $watermarkImage, $positionX, $positionY, 0, 0, $watermarkWidth, $watermarkHeight, $alpha);
+//
+//        // Add text to the image
+//        $textColor = imagecolorallocate($sourceImage, 255, 255, 255); // RGB color for the text
+//        $text = 'Проверено Совкомбанк Digital Bot. Фото снято: ' . Carbon::parse($image->taken_at)->format("d.m.Y h:i:s");
+//        $font = 'arial'; // Path to the font file, e.g., Arial.ttf
+//        $fontSize = 15;
+//        $textX = 15; // Adjust the text position as needed
+//        $textY = 28;
+//
+//        imagettftext($sourceImage, $fontSize, 0, $textX, $textY, $textColor, $font, $text);
+//
+//        // Output or save the watermarked image
+////        header('Content-type: image/jpeg'); // Change to the appropriate content type (JPEG, PNG, etc.)
+//        $filename = Str::random(40);
+//        $filename .= '.' . explode('.', $image->original_path)[1];
+//
+//        $path = Storage::disk('images')->path($filename);
+//
+//        imagejpeg($sourceImage, $path); // You can save it to a file or display it
+//
+//        $image->edited_path = $filename;
+//        $image->save();
+//
+//        // Clean up resources
+//        imagedestroy($sourceImage);
+//        imagedestroy($watermarkImage);
     }
 }

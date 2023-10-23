@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
  * @property string|null $taken_at
  * @property int|null $geolocation_id
  * @property int $insurance_request_attachment_id
+ * @property bool $is_nn_validated
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \App\Models\InsuranceRequestAttachment|null $attachment
