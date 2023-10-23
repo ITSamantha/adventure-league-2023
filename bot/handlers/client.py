@@ -349,7 +349,8 @@ def handle_upload_fill_ira(message, bot):
     if int(iofts[user_id][current_ioft]['file_type_id']) == int(FileType.TEXT.value):
         payload = {
             'text': user_file_data[user_id][iofts[user_id][current_ioft]['id']],
-            'insurance_request_id': 1,
+            'insurance_request_id': handlers.common.users[user_id]['current_request']['id'],
+            'is_last': False,
             'insurance_object_file_type': iofts[user_id][current_ioft]['id'],
         }
 
@@ -361,12 +362,12 @@ def handle_upload_fill_ira(message, bot):
         ))
         payload = {
             'links': links,
-            'insurance_request_id': 1,
+            'is_last': current_ioft == len(iofts[user_id]),
+            'insurance_request_id': handlers.common.users[user_id]['current_request']['id'],
             'insurance_object_file_type': iofts[user_id][current_ioft]['id'],
         }
 
     try:
-        print(payload)
         response = HttpClient.post('ira', user_id, json=payload)
         if response['success']:
             handle_start_upload(message, bot)
