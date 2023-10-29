@@ -276,7 +276,7 @@ def handle_help(message, bot):
             keyboard.add(hp)
 
         bot.send_message(user_id, "*Выберите нужный раздел:*", reply_markup=keyboard, parse_mode=interface.PARSE_MODE)
-
+        handle_menu(message, bot)
     except ClientException as e:
         bot.send_message(user_id, BotMessageException.CLIENT_EXCEPTION_MSG)
         print(str(e))
@@ -313,7 +313,7 @@ def handle_help_button_pressed(call, bot):
             bot.send_message(user_id, "К сожалению, Вы не авторизованы.")
             return
 
-        information = (f'{user_helps[role][help_category][HELP_TITLE]}'
+        information = (f'___{user_helps[role][help_category][HELP_TITLE]}___'
                        f'\n\n{user_helps[role][help_category][HELP_DESCRIPTION]}'
                        f'{general_photo_requirements[HELP_DESCRIPTION] if help_category != GENERAL_REQUIREMENTS else ""}')
         bot.send_message(call.message.chat.id, information, parse_mode="Markdown")
@@ -328,7 +328,6 @@ def handle_help_button_pressed(call, bot):
         bot.send_message(user_id, BotMessageException.OTHER_EXCEPTION_MSG)
         print(str(e))
     handle_menu(call.message, bot)
-
 
 
 def register_handlers_common(bot):

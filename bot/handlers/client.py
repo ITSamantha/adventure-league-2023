@@ -232,22 +232,21 @@ def handle_photos_request(message, bot):
 def handle_display_iofts(message, bot):
     user_id = str(message.chat.id)
     markup = types.ReplyKeyboardMarkup(True, True)
-    markup.add("Перейти к загрузке фото к заявке")
-    bot.send_message(message.chat.id, "Список необходимой информации:")
-    for ioft in iofts[user_id]:
-        bot.send_message(message.chat.id, ioft['file_description'])
-
+    markup.add("Перейти к загрузке фото к заявке", 'Выход в меню')
+    bot.send_message(message.chat.id, "Список необходимой информации:", parse_mode=interface.PARSE_MODE)
+    iofts_text = '\n'.join([f"{i + 1}. {ioft['file_description']}" for i, ioft in enumerate(iofts[user_id])])
+    bot.send_message(message.chat.id, iofts_text)
     user_photo_upload_stage[user_id] = 'asked_upload'
     bot.send_message(message.chat.id,
-                     "Выше список всей необходимой информации. Ознакомьтесь, пожалуйста, какую именно информацию вам необходимо предоставить в бот.",
-                     reply_markup=markup)
+                     "___Выше предоставлен список всей необходимой информации. Ознакомьтесь, пожалуйста, какую именно информацию вам необходимо предоставить в бот.___",
+                     reply_markup=markup, parse_mode=interface.PARSE_MODE)
 
 
 def add_file(message, bot):
     print(message)
     print(message.document.file_name)
     user_id = str(message.chat.id)
-    # bot.send_message(user_id, 'Фото отправлено. Ожидайте окончания обработки😌', reply_markup=interface.remove_keyboard)
+    bot.send_message(user_id, 'Фото отправлено😌', reply_markup=interface.remove_keyboard)
     if user_id in user_photo_upload_stage:
         if user_photo_upload_stage[user_id] == 'test':
             user_photo_upload_stage[user_id] = 'pending'
@@ -314,7 +313,7 @@ def handle_techical_help(message, bot):
 def handle_start_upload(message, bot):
     user_id = str(message.chat.id)
     markup1 = types.ReplyKeyboardMarkup(True, True)
-    markup1.add('Все файлы по данной категории загружены')
+    markup1.add('Все файлы по данной категории загружены', 'Выход в меню')
 
     if user_id in user_photo_upload_stage:
         if user_photo_upload_stage[user_id] == 'asked_upload':
@@ -335,12 +334,12 @@ def handle_start_upload(message, bot):
     user_photo_upload_stage[user_id] = 'uploading_' + str(current_ioft)
     if int(iofts[user_id][current_ioft]['file_type_id']) == int(FileType.TEXT.value):
         bot.send_message(user_id,
-                         "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
-                         iofts[user_id][current_ioft]['file_description'])
+                         f"Загрузите, пожалуйста {iofts[user_id][current_ioft]['file_type'].lower()}:\n___{iofts[user_id][current_ioft]['file_description']}___",
+                         parse_mode=interface.PARSE_MODE)
     else:
         bot.send_message(user_id,
-                         "Загрузите, пожалуйста " + iofts[user_id][current_ioft]['file_type'].lower() + ": \n" +
-                         iofts[user_id][current_ioft]['file_description'], reply_markup=markup1)
+                         f"Загрузите, пожалуйста {iofts[user_id][current_ioft]['file_type'].lower()}:\n___{iofts[user_id][current_ioft]['file_description']}___",
+                         reply_markup=markup1, parse_mode=interface.PARSE_MODE)
 
 
 def handle_upload_fill_ira(message, bot):
@@ -420,6 +419,8 @@ def register_handlers_client(bot):
     bot.register_message_handler(handle_photos_request, func=lambda message: message.text == "Перейти к осмотру",
                                  pass_bot=True)
     bot.register_message_handler(handle_techical_help, func=lambda message: message.text == "Техническая поддержка",
+                                 pass_bot=True)
+    bot.register_message_handler(handlers.common.handle_menu, func=lambda message: message.text == "Выход в меню",
                                  pass_bot=True)
 
     bot.register_callback_query_handler(callback_client_load_request,
