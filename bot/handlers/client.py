@@ -189,9 +189,6 @@ def define_current_page(user_id):
     handlers.common.users[user_id]['current_page'] = 0
 
 
-# Задаем модератора и юзера (их chat_id)
-moderator_chat_id = 1265630862  # Замените на chat_id модератора
-user_chat_id = 840181920  # Замените на chat_id юзера
 
 
 def start_chat(message, bot):
